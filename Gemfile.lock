@@ -8,6 +8,12 @@ GIT
       sass
       sinatra
 
+GIT
+  remote: git://github.com/tshelburne/cronus-js.git
+  revision: c2cb5da182efb6c3742518dabda93f48b5281126
+  specs:
+    cronus (0.0.1)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -86,6 +92,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  cronus!
   echoe
   jasmine
   jasmine-headless-webkit

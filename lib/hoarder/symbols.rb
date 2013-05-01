@@ -1,11 +1,17 @@
 require "keystone"
 
-module LIBRARY_NAME_UCASE
+module Hoarder
 	
-	@@pipeline ||= ::Keystone.bootstrap("#{File.dirname(__FILE__)}/../../config/assets.rb")
+	def self.pipeline
+		@@pipeline ||= ::Keystone.bootstrap("#{root_path}/config/assets.rb")
+	end
 	
 	def self.keystone_compiler
-		@@keystone_compiler ||= @@pipeline.compiler("hoarder.js")
+		@@keystone_compiler ||= pipeline.compiler("hoarder.js")
+	end
+
+	def self.root_path
+		File.expand_path("#{File.dirname(__FILE__)}/../../")
 	end
 
 end

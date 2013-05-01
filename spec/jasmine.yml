@@ -41,4 +41,4 @@ src_dir:
 #
 # Spec directory path. Your spec_files must be returned relative to this path.
 # Default: spec/javascripts
-spec_dir: spec/tests
+spec_dir: spec

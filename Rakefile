@@ -1,3 +1,8 @@
+$: << File.expand_path("#{File.dirname(__FILE__)}/lib")
+
+require 'hoarder'
+require 'cronus'
+
 require 'rake'
 require 'jasmine-headless-webkit'
 require 'keystone'
@@ -6,7 +11,7 @@ require 'echoe'
 Echoe.new("hoarder") do |p|
   p.author = "Tim Shelburne"
   p.email = "shelburt02@gmail.com"
-  p.url = "https://github.com/tshelburne/GITHUB_NAME"
+  p.url = "https://github.com/tshelburne/hoarder-js"
 
   p.ignore_pattern = FileList[".gitignore"]
   p.development_dependencies = [ "jasmine", "jasmine-headless-webkit" ]
