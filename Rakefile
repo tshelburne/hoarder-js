@@ -8,7 +8,7 @@ require 'jasmine-headless-webkit'
 require 'keystone'
 require 'echoe'
 
-Echoe.new("hoarder") do |p|
+Echoe.new("hoarder-js") do |p|
   p.author = "Tim Shelburne"
   p.email = "shelburt02@gmail.com"
   p.url = "https://github.com/tshelburne/hoarder-js"

@@ -25,7 +25,6 @@ assets/scripts/coffee/hoarder/validator/form_validator.coffee
 assets/scripts/js/lib/jquery.js
 bin/hoarder.js
 config/assets.rb
-hoarder.gemspec
 lib/hoarder.rb
 lib/hoarder/symbols.rb
 spec/jasmine.yml
