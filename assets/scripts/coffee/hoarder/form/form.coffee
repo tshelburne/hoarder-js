@@ -26,7 +26,7 @@ class Form
 
     formElements = []
     for element in elements
-      validationRules = if element.getAttribute("data-validation")? then element.getAttribute("data-validation").split(',').map((rule)-> rule.trim()) else []
+      validationRules = if element.getAttribute("data-validation")? then (rule.trim() for rule in element.getAttribute("data-validation").split(',')) else []
       selector = "#{element.nodeName}[data-bind='#{element.getAttribute("data-bind")}']"
       formElements.push new FormElement(element.name, element.value, selector, validationRules)
     formElements

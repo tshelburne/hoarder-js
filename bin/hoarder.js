@@ -23,7 +23,7 @@
     }
 
     Form.prototype.elements = function() {
-      var element, elements, formElements, inputs, selector, selects, textareas, validationRules, _i, _len;
+      var element, elements, formElements, inputs, rule, selector, selects, textareas, validationRules, _i, _len;
 
       elements = [];
       inputs = this.form.find("input");
@@ -41,9 +41,17 @@
       formElements = [];
       for (_i = 0, _len = elements.length; _i < _len; _i++) {
         element = elements[_i];
-        validationRules = element.getAttribute("data-validation") != null ? element.getAttribute("data-validation").split(',').map(function(rule) {
-          return rule.trim();
-        }) : [];
+        validationRules = element.getAttribute("data-validation") != null ? (function() {
+          var _j, _len1, _ref, _results;
+
+          _ref = element.getAttribute("data-validation").split(',');
+          _results = [];
+          for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+            rule = _ref[_j];
+            _results.push(rule.trim());
+          }
+          return _results;
+        })() : [];
         selector = "" + element.nodeName + "[data-bind='" + (element.getAttribute("data-bind")) + "']";
         formElements.push(new FormElement(element.name, element.value, selector, validationRules));
       }
