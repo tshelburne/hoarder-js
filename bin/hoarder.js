@@ -1179,19 +1179,3 @@ return(!i||i!==r&&!b.contains(r,i))&&(e.type=o.origType,n=o.handler.apply(this,a
   };
   window.modules = modules;
 })();
-
-(function() {
-  var modules = window.modules || [];
-  window.require = function(path) {
-    var transformedPath = path.replace(/\//g, '__');
-    if (transformedPath.indexOf('__') === -1) {
-      transformedPath = '__' + transformedPath;
-    }
-    var factory = modules[transformedPath];
-    if (factory === null) {
-      return null;
-    } else {
-      return modules[transformedPath]();
-    }
-  };
-})();
