@@ -18,8 +18,11 @@ stylesheets:
 # Return an array of filepaths relative to spec_dir to include before jasmine specs.
 # Default: ["helpers/**/*.js"]
 helpers:
+  - support/lib/jquery-1.7.1.min.js
+  - support/lib/jasmine-fixture.js
   - support/requirements.coffee
   - support/helpers.coffee
+  - support/fixtures.coffee
   - support/objects.coffee
   - support/classes.coffee
   - support/mocks.coffee
@@ -29,7 +32,7 @@ helpers:
 #  Return an array of filepaths relative to spec_dir to include.
 # Default: ["**/*[sS]pec.js"]
 spec_files:
-  - ./**/*_spec.coffee
+  - ./**/form_spec.coffee
 
 # src_dir
 #
