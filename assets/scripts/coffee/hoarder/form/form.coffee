@@ -1,6 +1,4 @@
-require "lib/jquery"
-
-FormElement = require "hoarder/form/form_element"
+FormSerializer = require 'hoarder/form/form_serializer'
 
 #
 # @author - Tim Shelburne <tim@musiconelive.com>
@@ -8,41 +6,50 @@ FormElement = require "hoarder/form/form_element"
 # wraps an HTML form for easier form management
 #
 class Form
-  constructor: (formId, @type = "simple")->
-    @form = $("##{formId}")
-    @form.submit (e)-> e.preventDefault()
-    @action = @form.attr("action")
-    @method = @form.attr("method")
-    @addedElements = []
 
-  elements: ->
-    elements = []
-    inputs = @form.find("input")
-    elements = elements.concat inputs.toArray() if inputs.length > 0
-    selects = @form.find("select")
-    elements = elements.concat selects.toArray() if selects.length > 0
-    textareas = @form.find("textarea")
-    elements = elements.concat textareas.toArray() if textareas.length > 0
+	constructor: (formId, @type)->
+		@form = document.getElementById formId
+		@addedElements = [ ]
 
-    formElements = []
-    for element in elements
-      validationRules = if element.getAttribute("data-validation")? then element.getAttribute("data-validation").split(',').map((rule)-> rule.trim()) else []
-      selector = "#{element.nodeName}[data-bind='#{element.getAttribute("data-bind")}']"
-      formElements.push new FormElement(element.name, element.value, selector, validationRules)
-    formElements
+	elements: -> (@form[index] for index in [0..@form.length] when @form[index]?.nodeName in [ 'INPUT', 'SELECT', 'TEXTAREA' ])
 
-  addElement: (name, value, isRemovable = true)->
-    @form.append "<input type='hidden' name='#{name}' value='#{value}'/>"
-    @addedElements.push $("input[name='#{name}']", @form) if isRemovable
+	action: -> @form.action
 
-  addElements: (elements)-> @addElement(element.name, element.value) for element in elements
+	method: -> @form.method
 
-  updateAddedElement: (name, value)->  @form.find("input[name='#{name}']").val(value)
+	addElement: (name, value)->
+		throw new Error "'#{name}' already exists as an element on the form." if @form[name]?
+		element = createElement name, value
+		@form.appendChild element
+		@addedElements.push element
+		element
 
-  clearAddedElements: ->
-    element.remove() for element in @addedElements
-    @addedElements = []
+	addElements: (elements)->
+		errors = [ ]
+		for element in elements
+			try @addElement(element.name, element.value) 
+			catch e 
+				errors.push e
+		throw error for error in errors
 
-  serialize: -> @form.serialize()
+	getElement: (name)-> @form[name]
+
+	updateAddedElement: (name, value)-> if @form[name]? then @form[name].value = value else @addElement name, value
+
+	clearAddedElements: ->
+		@form.removeChild element for element in @addedElements
+		@addedElements = []
+
+	serialize: -> FormSerializer.toString @
+
+
+	# private
+
+	createElement = (name, value)->
+		element = document.createElement("input")
+		element.type = "hidden"
+		element.name = name
+		element.value = value
+		element
 
 return Form
