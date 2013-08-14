@@ -4,6 +4,7 @@
 # 
 #
 class ValidationError
-  constructor: (@message)->
+
+  constructor: (@message, @element)->
 
 return ValidationError

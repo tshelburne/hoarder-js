@@ -1,18 +1,12 @@
-ValidationError = require "hoarder/validator/error/validation_error"
+BaseConstraint = require "hoarder/validator/constraints/base_constraint"
 
-#
-# @author - Tim Shelburne <tim@musiconelive.com>
-#
-# 
-#
-class NumericConstraint
-  canHandle: (type)->
-    type is "numeric"
+class NumericConstraint extends BaseConstraint
 
-  handle: (element)->
-    if element.value.match(/^[0-9]*$/)
-      return []
-    else
-      return [ new ValidationError "This field only accepts numbers (0-9)." ]
+  constructor: ->
+    @type = "numeric"
+
+  rulePasses: (element)-> element.value.match(/^[0-9]*$/)
+
+  errorMessage: -> "This field only accepts numbers (0-9)."
 
 return NumericConstraint

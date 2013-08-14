@@ -1,18 +1,12 @@
-ValidationError = require "hoarder/validator/error/validation_error"
+BaseConstraint = require "hoarder/validator/constraints/base_constraint"
 
-#
-# @author - Tim Shelburne <tim@musiconelive.com>
-#
-# 
-#
-class MaxLengthConstraint
-  canHandle: (type)->
-    type is "maxLength"
+class MaxLengthConstraint extends BaseConstraint
+  
+  constructor: ->
+    @type = "maxLength"
 
-  handle: (element, context)->
-    if element.value.length <= context.value
-      return []
-    else
-      return [ new ValidationError "The maximum length of this field is #{context.value}." ]
+  rulePasses: (element, rule)-> element.value.length <= rule.context
+
+  errorMessage: (rule)-> "The maximum length of this field is #{rule.context}."
 
 return MaxLengthConstraint

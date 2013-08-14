@@ -11,15 +11,12 @@ describe "FormValidator", ->
 
   it "can validate an element", ->
     errors = validator.validateElement(element)
-    jasmine.log errors
     expect(errors[0].message).toEqual "This field only accepts numbers and characters (0-9, A-Z, a-z)."
     element.value = "4111111111111111"
     errors = validator.validateElement(element)
-    jasmine.log errors
     expect(errors[0].message).toEqual "Please enter a valid email address."
     element.value = "6854291"
     errors = validator.validateElement(element)
-    jasmine.log errors
     expect(errors[0].message).toEqual "Please enter a valid credit card number."
 
   it "can validate a form", ->

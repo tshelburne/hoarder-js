@@ -1,18 +1,12 @@
-ValidationError = require "hoarder/validator/error/validation_error"
+BaseConstraint = require 'hoarder/validator/constraints/base_constraint'
 
-#
-# @author - Tim Shelburne <tim@musiconelive.com>
-#
-# 
-#
-class AlphanumericConstraint
-  canHandle: (type)->
-    type is "alphanumeric"
+class AlphanumericConstraint extends BaseConstraint
 
-  handle: (element)->
-    if element.value.match(/^[A-Za-z0-9\s]*$/)
-      return []
-    else
-      return [ new ValidationError "This field only accepts numbers and characters (0-9, A-Z, a-z)." ]
+  constructor: ->
+    @type = "alphanumeric"
+
+  rulePasses: (element)-> element.value.match(/^[A-Za-z0-9\s]*$/)
+
+  errorMessage: -> "This field only accepts numbers and characters (0-9, A-Z, a-z)."
 
 return AlphanumericConstraint

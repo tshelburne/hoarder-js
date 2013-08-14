@@ -1,18 +1,12 @@
-ValidationError = require "hoarder/validator/error/validation_error"
+BaseConstraint = require 'hoarder/validator/constraints/base_constraint'
 
-#
-# @author - Tim Shelburne <tim@musiconelive.com>
-#
-# 
-#
-class RequiredConstraint
-  canHandle: (type)->
-    type is "required"
+class RequiredConstraint extends BaseConstraint
 
-  handle: (element)->
-    if element.value? and element.value isnt ""
-      return []
-    else
-      return [ new ValidationError "This field is required." ]
+  constructor: ->
+    @type = "required"
+
+  rulePasses: (element)-> element.value? and element.value isnt ""
+
+  errorMessage: -> "This field is required."
 
 return RequiredConstraint

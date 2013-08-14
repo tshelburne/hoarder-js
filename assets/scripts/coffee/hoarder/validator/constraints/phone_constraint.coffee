@@ -1,18 +1,12 @@
-ValidationError = require "hoarder/validator/error/validation_error"
+BaseConstraint = require 'hoarder/validator/constraints/base_constraint'
 
-#
-# @author - Tim Shelburne <tim@musiconelive.com>
-#
-# 
-#
-class PhoneConstraint
-  canHandle: (type)->
-    type is "phone"
+class PhoneConstraint extends BaseConstraint
 
-  handle: (element)->
-    if element.value.match(/^\d?[.(\-]?\d\d\d[.)\-]?\d\d\d[.\-]?\d\d\d\d$/)
-      return []
-    else
-      return [ new ValidationError "Please enter a valid phone number." ]
+  constructor: ->
+    @type = "phone"
+
+  rulePasses: (element)-> element.value.match(/^\d?[.(\-]?\d\d\d[.)\-]?\d\d\d[.\-]?\d\d\d\d$/)
+
+  errorMessage: -> "Please enter a valid phone number."
 
 return PhoneConstraint
