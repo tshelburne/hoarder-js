@@ -18,7 +18,7 @@ describe "Form", ->
 		baseForm = document.getElementById("order-form")
 		nameElement = baseForm['customer-name']
 		shippingElement = baseForm['shipping-method']
-		form = new Form("order-form", "simple")
+		form = new Form(baseForm)
 
 	describe '#elements', ->
 

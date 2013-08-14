@@ -7,20 +7,19 @@ FormSerializer = require 'hoarder/form/form_serializer'
 #
 class Form
 
-	constructor: (formId, @type)->
-		@form = document.getElementById formId
+	constructor: (@formElement)->
 		@addedElements = [ ]
 
-	elements: -> (@form[index] for index in [0..@form.length] when @form[index]?.nodeName in [ 'INPUT', 'SELECT', 'TEXTAREA' ])
+	elements: -> (@formElement[index] for index in [0..@formElement.length] when @formElement[index]?.nodeName in [ 'INPUT', 'SELECT', 'TEXTAREA' ])
 
-	action: -> @form.action
+	action: -> @formElement.action
 
-	method: -> @form.method
+	method: -> @formElement.method
 
 	addElement: (name, value)->
-		throw new Error "'#{name}' already exists as an element on the form." if @form[name]?
+		throw new Error "'#{name}' already exists as an element on the form." if @formElement[name]?
 		element = createElement name, value
-		@form.appendChild element
+		@formElement.appendChild element
 		@addedElements.push element
 		element
 
@@ -30,14 +29,14 @@ class Form
 			try @addElement(element.name, element.value) 
 			catch e 
 				errors.push e
-		throw error for error in errors
+		throw errors[0] if errors.length
 
-	getElement: (name)-> @form[name]
+	getElement: (name)-> @formElement[name]
 
-	updateAddedElement: (name, value)-> if @form[name]? then @form[name].value = value else @addElement name, value
+	updateAddedElement: (name, value)-> if @formElement[name]? then @formElement[name].value = value else @addElement name, value
 
 	clearAddedElements: ->
-		@form.removeChild element for element in @addedElements
+		@formElement.removeChild element for element in @addedElements
 		@addedElements = []
 
 	serialize: -> FormSerializer.toString @
