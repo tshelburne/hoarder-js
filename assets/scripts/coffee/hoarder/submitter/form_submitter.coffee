@@ -3,11 +3,6 @@ MultiSignalRelay = require "cronus/multi_signal_relay"
 SimpleSubmitter = require "hoarder/submitter/submitters/simple_submitter"
 PollingSubmitter = require "hoarder/submitter/submitters/polling_submitter"
 
-#
-# @author - Tim Shelburne <tim@musiconelive.com>
-#
-# a class to handle submitting forms
-#
 class FormSubmitter
 
   @create: (pollingUrl, pollFrequency=1000)->

@@ -1,10 +1,5 @@
 FormSerializer = require 'hoarder/form/form_serializer'
 
-#
-# @author - Tim Shelburne <tim@musiconelive.com>
-#
-# wraps an HTML form for easier form management
-#
 class Form
 
 	constructor: (@formElement)->

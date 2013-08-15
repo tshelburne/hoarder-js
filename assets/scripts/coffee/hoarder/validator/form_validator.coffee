@@ -10,11 +10,6 @@ NumericConstraint = require "hoarder/validator/constraints/numeric_constraint"
 PhoneConstraint = require "hoarder/validator/constraints/phone_constraint"
 RequiredConstraint = require "hoarder/validator/constraints/required_constraint"
 
-#
-# @author - Tim Shelburne <tim@musiconelive.com>
-#
-# a class to validate forms and form elements
-#
 class FormValidator
 
   @libraryConstraints = [
