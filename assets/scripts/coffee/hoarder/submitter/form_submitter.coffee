@@ -9,21 +9,21 @@ PollingSubmitter = require "hoarder/submitter/submitters/polling_submitter"
 # a class to handle submitting forms
 #
 class FormSubmitter
+
+  @create: (pollingUrl, pollFrequency=1000)->
+    new @([ new SimpleSubmitter(), new PollingSubmitter(pollingUrl, pollFrequency)])
+
   constructor: (@submitters)->
-    successSignals = []
-    errorSignals = []
-    for submitter in @submitters
-      successSignals.push submitter.submittedWithSuccess
-      errorSignals.push submitter.submittedWithError
+    successSignals = (submitter.submittedWithSuccess for submitter in @submitters)
+    errorSignals = (submitter.submittedWithError for submitter in @submitters)
 
     @submittedWithSuccess = new MultiSignalRelay(successSignals)
     @submittedWithError = new MultiSignalRelay(errorSignals)
 
-  @default: (pollingUrl)->
-    new @([ new SimpleSubmitter(), new PollingSubmitter(pollingUrl, 1000)])
-
-  submitForm: (form)->
+  submit: (form, type)->
     for submitter in @submitters
-      submitter.submitForm(form) if submitter.canSubmit(form)
+      if submitter.canSubmit(type)
+        submitter.submit form 
+        break
 
 return FormSubmitter

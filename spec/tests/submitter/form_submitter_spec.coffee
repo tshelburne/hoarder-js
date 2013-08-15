@@ -1,47 +1,64 @@
 FormSubmitter = require "hoarder/submitter/form_submitter"
 
+Form = require 'hoarder/form/form'
+SimpleSubmitter = require "hoarder/submitter/submitters/simple_submitter"
+PollingSubmitter = require "hoarder/submitter/submitters/polling_submitter"
+
 describe "FormSubmitter", ->
-  formSubmitter = null
-  response = null
-  success = (form, data)->
-    response = { form : form, data : data }
-  error = (form, text)->
-    response = { form : form, text : text }
+  formSubmitter = pollingSubmitter = form = null
+
+  reqwestCallback = null
+  reqwestResponse = null
+  reqwestSpy = (params)-> params[reqwestCallback].apply null, reqwestResponse
+
+  # these are a result of using Function::apply above
+  successResponse = -> reqwestResponse[0]
+  errorResponse = -> reqwestResponse[1]
+
+  callbacks =
+    successHappened: (form, data)->
+    errorHappened: (form, errorMessage)->
 
   beforeEach ->
-    response = null
-    formSubmitter = FormSubmitter.default("http://mydomain.com/my/polling/url")
-    formSubmitter.submittedWithSuccess.add(success)
-    formSubmitter.submittedWithError.add(error)
+    createTestFormFixture()
 
-  it "can successfully submit a simple form", ->
-    spyOn(formSubmitter.submitters[0], "submitForm").andCallFake (form)-> @submitSuccess(form, "simple")
-    formSubmitter.submitForm mocks.simpleForm
-    expect(response.form).toBe mocks.simpleForm
-    expect(response.data).toEqual "simple"
+    form = new Form(document.getElementById('test-form'))
+    pollingSubmitter = new PollingSubmitter("/poll-url", 500)
+    formSubmitter = new FormSubmitter([ new SimpleSubmitter(), pollingSubmitter ])
+    
+    reqwestCallback = "success"
+    spyOn(callbacks, 'successHappened').andCallThrough()
+    spyOn(callbacks, 'errorHappened').andCallThrough()
+    formSubmitter.submittedWithSuccess.add callbacks.successHappened
+    formSubmitter.submittedWithError.add callbacks.errorHappened
+    spyOn(window, 'reqwest').andCallFake(reqwestSpy)
 
-  it "can relay errors on a simple form submission", ->
-    spyOn(formSubmitter.submitters[0], "submitForm").andCallFake (form)-> @submitError(form, {}, "simple error")
-    formSubmitter.submitForm mocks.simpleForm
-    expect(response.form).toBe mocks.simpleForm
-    expect(response.text).toEqual "simple error"
+  describe '::create', ->
 
-  it "can successfully submit a polling form", ->
-    spyOn(formSubmitter.submitters[1], "submitForm").andCallFake (form)-> @submitSuccess(form, { pollId: "1234" })
-    spyOn(formSubmitter.submitters[1], "queryPoll").andCallFake (form, pollId)-> @pollSuccess(form, pollId, { pollCompleted: true, pollData: "polling" })
-    formSubmitter.submitForm mocks.pollingForm
-    expect(response.form).toBe mocks.pollingForm
-    expect(response.data).toEqual "polling"
+    it "will create a default implementation of the FormSubmitter", ->
+      expect(FormSubmitter.create("/poll-url", 500).constructor).toEqual FormSubmitter
 
-  it "can relay errors on a polling form submission", ->
-    spyOn(formSubmitter.submitters[1], "submitForm").andCallFake (form)-> @submitError(form, {}, "polling error")
-    formSubmitter.submitForm mocks.pollingForm
-    expect(response.form).toBe mocks.pollingForm
-    expect(response.text).toEqual "polling error"
+  describe '#submit', ->
 
-  it "can relay errors on a polling check submission", ->
-    spyOn(formSubmitter.submitters[1], "submitForm").andCallFake (form)-> @submitSuccess(form, { pollId: "1234" })
-    spyOn(formSubmitter.submitters[1], "queryPoll").andCallFake (form, pollId)-> @submitError(form, {}, "polling error")
-    formSubmitter.submitForm mocks.pollingForm
-    expect(response.form).toBe mocks.pollingForm
-    expect(response.text).toEqual "polling error"
+    it "will successfully submit a simple form", ->
+      reqwestResponse = mocks.simpleSuccessResponse
+      formSubmitter.submit form, 'simple'
+      expect(callbacks.successHappened).toHaveBeenCalledWith form, successResponse()
+
+    it "will relay errors on a simple form submission", ->
+      reqwestCallback = 'error'
+      reqwestResponse = mocks.errorResponse
+      formSubmitter.submit form, 'simple'
+      expect(callbacks.errorHappened).toHaveBeenCalledWith form, errorResponse()
+
+    it "will successfully submit a polling form", ->
+      reqwestResponse = mocks.pollingProcessCompletedResponse
+      spyOn(pollingSubmitter, 'submit').andCallFake(-> pollingSubmitter.poll(form, "1234"))
+      formSubmitter.submit form, 'polling'
+      expect(callbacks.successHappened).toHaveBeenCalledWith form, successResponse().processData
+
+    it "will relay errors on a polling form submission", ->
+      reqwestCallback = 'error'
+      reqwestResponse = mocks.errorResponse
+      formSubmitter.submit form, 'polling'
+      expect(callbacks.errorHappened).toHaveBeenCalledWith form, errorResponse()
