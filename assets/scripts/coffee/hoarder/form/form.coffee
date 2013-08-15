@@ -17,7 +17,7 @@ class Form
 	method: -> @formElement.method
 
 	addElement: (name, value)->
-		throw new Error "'#{name}' already exists as an element on the form." if @formElement[name]?
+		throw new Error "'#{name}' already exists as an element on the form." if @hasElement name
 		element = createElement name, value
 		@formElement.appendChild element
 		@addedElements.push element
@@ -31,7 +31,9 @@ class Form
 				errors.push e
 		throw errors[0] if errors.length
 
-	getElement: (name)-> @formElement[name]
+	hasElement: (name)-> @getElement(name)?
+
+	getElement: (name)-> @formElement[name] if @formElement[name] instanceof HTMLElement
 
 	updateAddedElement: (name, value)-> if @formElement[name]? then @formElement[name].value = value else @addElement name, value
 

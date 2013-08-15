@@ -2,28 +2,31 @@ Form = require 'hoarder/form/form'
 
 describe "Form", ->
 	form = null
-	baseForm = nameElement = shippingElement = null
+	shippingForm = addressElement = cityElement = stateElement = zipElement = null
 
 	elements = [
-		{ name: 'customer[phone]',  value: '555-555-5555' }
-		{ name: 'customer[gender]', value: 'male' }
-		{ name: 'customer[height]', value: 'tall' }
+		{ name: 'name',  value: 'John' }
+		{ name: 'gender', value: 'male' }
+		{ name: 'height', value: 'tall' }
 	]
 
 	singleElementName = elements[0].name
 	singleElementValue = elements[0].value
 
 	beforeEach ->
-		createFormFixture()
-		baseForm = document.getElementById("order-form")
-		nameElement = baseForm['customer-name']
-		shippingElement = baseForm['shipping-method']
-		form = new Form(baseForm)
+		createTestFormFixture()
+
+		shippingForm   = document.getElementById("test-form")
+		addressElement = shippingForm['address']
+		cityElement    = shippingForm['city']
+		stateElement   = shippingForm['state']
+		zipElement     = shippingForm['zip']
+		form           = new Form(shippingForm)
 
 	describe '#elements', ->
 
 		it "will return a list containing all the original form elements", ->
-			expect(form.elements()).toContain element for element in [ nameElement, shippingElement ]
+			expect(form.elements()).toContain element for element in [ cityElement, stateElement, zipElement ]
 
 		it "will return a list containing any added form elements", ->
 			element = form.addElement(singleElementName, singleElementValue)
@@ -31,7 +34,7 @@ describe "Form", ->
 
 		it "will return all input, select, and textarea elements currently in the form", ->
 			form.addElement(singleElementName, singleElementValue)
-			expect(form.elements().length).toEqual 10
+			expect(form.elements().length).toEqual 5
 
 	describe '#action', ->
 
@@ -59,7 +62,7 @@ describe "Form", ->
 
 		it "will throw an error if the element already exists", ->
 			form.addElement(singleElementName, singleElementValue)
-			expect(-> form.addElement(singleElementName, '123-456-7890')).toThrow()
+			expect(-> form.addElement(singleElementName, 'Jane Doe')).toThrow()
 
 	describe '#addElements', ->
 
@@ -78,10 +81,21 @@ describe "Form", ->
 				form.addElement(singleElementName, singleElementValue)
 				expect(-> form.addElements(elements)).toThrow()
 
+	describe '#hasElement', ->
+
+		it "will return true when the element exists on the form", ->
+			expect(form.hasElement 'city').toBeTruthy()
+
+		it "will return false when the element does not exist on the form", ->
+			expect(form.hasElement 'fullname').toBeFalsy()
+
+		it "will not return true for form properties", ->
+			expect(form.hasElement 'name').toBeFalsy()
+
 	describe '#getElement', ->
 
 		it "will return the element with the given name", ->
-			expect(form.getElement('customer-name')).toEqual document.getElementById 'customer-name'
+			expect(form.getElement('city')).toEqual document.getElementById 'city'
 
 		it "will return undefined when the element doesn't exist", ->
 			expect(form.getElement('bad-name')).toBeUndefined()
@@ -90,8 +104,8 @@ describe "Form", ->
 
 		it "will update the element's value", ->
 			form.addElement(singleElementName, singleElementValue)
-			form.updateAddedElement(singleElementName, '123-456-7890')
-			expect(form.getElement(singleElementName).value).toEqual "123-456-7890"
+			form.updateAddedElement(singleElementName, 'Jane Doe')
+			expect(form.getElement(singleElementName).value).toEqual "Jane Doe"
 
 		it "will create a new element if the element doesn't exist", ->
 			form.updateAddedElement(singleElementName, singleElementValue)
@@ -108,4 +122,6 @@ describe "Form", ->
 
 		it "will serialize the form", ->
 			form.addElements(elements)
-			expect(form.serialize()).toEqual "customer-email=testaddress&customer-name=John%20Doe&payment-number=4111111111111111&billing-zip=77441&shipping-method=1&shipping-address=1234%20Test%20Addy%20St.&shipping-zip=77441&shipping-city=Dal%20Antauston&extra-details=&customer[phone]=555-555-5555&customer[gender]=male&customer[height]=tall"
+			expect(form.serialize()).toEqual "address=1234%20Test%20Lane&city=Austin&state=LA&zip=78751&name=John&gender=male&height=tall"
+
+
