@@ -1,60 +1,105 @@
 PollingSubmitter = require "hoarder/submitter/submitters/polling_submitter"
+Form = require 'hoarder/form/form'
 
 describe "PollingSubmitter", ->
-  submitter = null
+	submitter = form = null
 
-  beforeEach ->
-    submitter = new PollingSubmitter("/poll-check-form-submit", 500)
+	reqwestCallback = null
+	reqwestResponse = null
+	reqwestSpy = (params)-> params[reqwestCallback].apply null, reqwestResponse
 
-  it "can initiate a poll upon successful submission of a form", ->
-    spyOn($, "ajax").andCallFake( (params)-> params.success(mocks.submitPollingFormResponse))
-    spyOn(submitter, "queryPoll")
-    submitter.submitForm(mocks.pollingForm)
-    expect(submitter.queryPoll).toHaveBeenCalledWith(mocks.pollingForm, "1234")
+	# these are a result of using Function::apply above
+	successResponse = -> reqwestResponse[0]
+	errorResponse = -> reqwestResponse[1]
 
-  it "can respond to a successful poll check", ->
-    spyOn($, "ajax").andCallFake( (params)-> params.success(mocks.submitFormPollingCheckResponse))
-    spyOn(submitter.submittedWithSuccess, "dispatch")
-    submitter.queryPoll(mocks.pollingForm, "1234")
-    expect(submitter.submittedWithSuccess.dispatch).toHaveBeenCalledWith(mocks.pollingForm, mocks.submitFormPollingCheckResponse.pollData)
+	callbacks =
+		successHappened: (form, data)->
+		errorHappened: (form, errorMessage)->
 
-  it "can poll with the given frequency", ->
-    jasmine.Clock.useMock()
-    spyOn($, "ajax").andCallFake( (params)=> if $.ajax.calls.length < 3 then params.success(mocks.submitFormPollingCheckFailedResponse) else params.success(mocks.submitFormPollingCheckResponse))
-    spyOn(submitter, "queryPoll").andCallThrough()
-    spyOn(submitter.submittedWithSuccess, "dispatch")
-    spyOn(submitter.submittedWithError, "dispatch")
-    submitter.submitSuccess(mocks.pollingForm, { pollId:"1234" })
-    expect(submitter.submittedWithSuccess.dispatch).not.toHaveBeenCalled()
-    expect(submitter.submittedWithError.dispatch).not.toHaveBeenCalled()
-    expect(submitter.queryPoll.calls.length).toEqual 1
-    jasmine.Clock.tick 501
-    expect(submitter.submittedWithSuccess.dispatch).not.toHaveBeenCalled()
-    expect(submitter.submittedWithError.dispatch).not.toHaveBeenCalled()
-    expect(submitter.queryPoll.calls.length).toEqual 2
-    jasmine.Clock.tick 501
-    expect(submitter.submittedWithSuccess.dispatch).toHaveBeenCalledWith(mocks.pollingForm, mocks.submitFormPollingCheckResponse.pollData)
+	beforeEach ->
+		createTestFormFixture()
 
-  it "will stop polling after receiving a pollCompleted message", ->
-    jasmine.Clock.useMock()
-    spyOn($, "ajax").andCallFake( (params)-> params.success(mocks.submitFormPollingCheckResponse))
-    spyOn(submitter, "queryPoll").andCallThrough()
-    spyOn(submitter.submittedWithSuccess, "dispatch")
-    spyOn(submitter.submittedWithError, "dispatch")
-    submitter.submitSuccess(mocks.pollingForm, { pollId:"1234" })
-    expect(submitter.submittedWithSuccess.dispatch).toHaveBeenCalledWith(mocks.pollingForm, mocks.submitFormPollingCheckResponse.pollData)
-    expect(submitter.submittedWithSuccess.dispatch.calls.length).toEqual 1
-    jasmine.Clock.tick 501
-    expect(submitter.submittedWithSuccess.dispatch.calls.length).toEqual 1
+		form = new Form(document.getElementById('test-form'))
+		submitter = new PollingSubmitter("/poll-url", 500)
+		
+		reqwestCallback = "success"
+		spyOn(callbacks, 'successHappened').andCallThrough()
+		spyOn(callbacks, 'errorHappened').andCallThrough()
+		submitter.submittedWithSuccess.add callbacks.successHappened
+		submitter.submittedWithError.add callbacks.errorHappened
+		spyOn(window, 'reqwest').andCallFake(reqwestSpy)
 
-  it "can respond to an error-ridden polling form submission", ->
-    spyOn($, "ajax").andCallFake( (params)-> params.error({}, "Error!"))
-    spyOn(submitter.submittedWithError, "dispatch")
-    submitter.submitForm(mocks.pollingForm)
-    expect(submitter.submittedWithError.dispatch).toHaveBeenCalledWith(mocks.pollingForm, "Error!" )
+	describe '#submit', ->
 
-  it "can respond to an error-ridden poll check", ->
-    spyOn($, "ajax").andCallFake( (params)-> params.error({}, "Error!"))
-    spyOn(submitter.submittedWithError, "dispatch")
-    submitter.queryPoll(mocks.pollingForm, "1234")
-    expect(submitter.submittedWithError.dispatch).toHaveBeenCalledWith(mocks.pollingForm, "Error!" )
+		describe "when the submission is successful", ->
+
+			it "will initiate a poll", ->
+				spyOn(submitter, 'poll')
+				reqwestResponse = mocks.pollingSubmitSuccessResponse
+				submitter.submit(form)
+				expect(submitter.poll).toHaveBeenCalledWith(form, successResponse().processId)
+			
+		describe "when an error occurs in the submission", ->
+
+			it "will call callbacks added to the submittedWithError signal", ->
+				reqwestCallback = "error"
+				reqwestResponse = mocks.errorResponse
+				submitter.submit(form)
+				expect(callbacks.errorHappened).toHaveBeenCalledWith(form, errorResponse())
+
+	describe '#poll', ->
+
+		beforeEach ->
+			spyOn(submitter, "poll").andCallThrough()
+
+		it "will poll with the given frequency", ->
+			reqwestResponse = mocks.pollingProcessNotCompletedResponse
+			jasmine.Clock.useMock()
+			submitter.poll(form, "1234")
+			expect(submitter.poll.calls.length).toEqual 1
+			jasmine.Clock.tick 501
+			expect(submitter.poll.calls.length).toEqual 2
+			jasmine.Clock.tick 501
+			expect(submitter.poll.calls.length).toEqual 3
+
+		describe "when the poll is successful", ->
+
+			describe "and the process has completed", ->
+
+				it "will stop polling", ->
+					reqwestResponse = mocks.pollingProcessNotCompletedResponse
+					jasmine.Clock.useMock()
+					submitter.poll(form, "1234")
+					expect(submitter.poll.calls.length).toEqual 1
+					reqwestResponse = mocks.pollingProcessCompletedResponse
+					jasmine.Clock.tick 501
+					expect(submitter.poll.calls.length).toEqual 2
+					jasmine.Clock.tick 501
+					expect(submitter.poll.calls.length).toEqual 2
+
+				it "will call callbacks added to the submittedWithSuccess signal", ->
+					reqwestResponse = mocks.pollingProcessCompletedResponse
+					submitter.poll(form, "1234")
+					expect(callbacks.successHappened).toHaveBeenCalledWith(form, successResponse().processData)
+
+			describe "and the process has not yet completed", ->
+
+				it "will initiate another poll", ->
+					reqwestResponse = mocks.pollingProcessNotCompletedResponse
+					jasmine.Clock.useMock()
+					submitter.poll(form, "1234")
+					jasmine.Clock.tick 501
+					expect(submitter.poll.calls.length).toBeGreaterThan 1
+				
+				it "will not call callbacks added to the submittedWithSuccess signal", ->
+					reqwestResponse = mocks.pollingProcessNotCompletedResponse
+					submitter.poll(form, "1234")
+					expect(callbacks.successHappened).not.toHaveBeenCalled()
+
+		describe "when an error occurs in the polling", ->
+
+			it "will call callbacks added to the submittedWithError signal", ->
+				reqwestCallback = "error"
+				reqwestResponse = mocks.errorResponse
+				submitter.poll(form, "1234")
+				expect(callbacks.errorHappened).toHaveBeenCalledWith(form, errorResponse())

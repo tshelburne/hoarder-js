@@ -2,7 +2,7 @@
 
 addMock "simpleSuccessResponse", [ status: "success", testData: "This is just some simple test data." ]
 
-addMock "pollingInitialSuccessResponse", [ processId: "1234" ]
+addMock "pollingSubmitSuccessResponse", [ processId: "1234" ]
 
 addMock "pollingProcessCompletedResponse", 
 	[

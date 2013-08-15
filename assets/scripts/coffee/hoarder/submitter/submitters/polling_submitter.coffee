@@ -1,36 +1,39 @@
-SimpleSubmitter = require "hoarder/submitter/submitters/simple_submitter"
+require 'lib/reqwest'
 
-#
-# @author - Tim Shelburne <tim@musiconelive.com>
-#
-# handles executing a delayed
-#
-class PollingSubmitter extends SimpleSubmitter
+BaseSubmitter = require "hoarder/submitter/submitters/base_submitter"
+
+class PollingSubmitter extends BaseSubmitter
+  
   constructor: (@pollUrl, @pollFrequency)->
     super()
+    @type = 'polling'
 
-  canSubmit: (form)-> form.type is "polling"
+  submit: (form)->
+    reqwest(
+      url: form.action
+      type: form.method
+      data: form.serialize()
+      success: (data)=> @poll(form, data.processId)
+      error: (xhr, text)=> @submittedWithError.dispatch(form, text)
+    )
 
-  submitSuccess: (form, data)->
-    @interval = setInterval( =>
-      @queryPoll(form, data.pollId)
-    , @pollFrequency)
-    @queryPoll(form, data.pollId)
+  poll: (form, processId)=>  
+    reqwest(
+      url: @pollUrl
+      type: "POST"
+      data: "processId=#{processId}"
+      success: (data)=> pollSuccess.call @, form, processId, data
+      error: (xhr, text)=> @submittedWithError.dispatch(form, text)
+    )
 
-  queryPoll: (form, pollId)=>
-    unless @executing
-      @executing = true
-      $.ajax
-        url: @pollUrl
-        type: "POST"
-        data: "pollId=#{pollId}"
-        success: (data)=> @pollSuccess(form, pollId, data)
-        error: (xhr, text)=> @submitError(form, xhr, text)
+  # private
 
-  pollSuccess: (form, pollId, data)=>
-    @executing = false
-    if data.pollCompleted
-      clearInterval(@interval)
-      @submittedWithSuccess.dispatch(form, data.pollData)
+  pollSuccess = (form, processId, data)->
+    if data.processCompleted
+      @submittedWithSuccess.dispatch(form, data.processData)
+    else
+      setTimeout( =>
+        @poll(form, data.processId)
+      , @pollFrequency)
 
 return PollingSubmitter
