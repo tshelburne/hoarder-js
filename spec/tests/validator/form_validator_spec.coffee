@@ -3,18 +3,13 @@ FormValidator = require "hoarder/validator/form_validator"
 
 describe "FormValidator", ->
   validator = null
-  form = cityElement = stateElement = zipElement = null
+  form = cityElement = null
 
   beforeEach ->
-    formFixture = affix 'form#test-form'
-    formFixture.affix 'input[type="text"][name="city"][value="Austin"][data-validation="alpha"]'
-    formFixture.affix 'input[type="text"][name="state"][value="TX"][data-validation="alpha,maxLength=2,minLength=2"]'
-    formFixture.affix 'input[type="text"][name="zip"][value="78751"][data-validation="numeric"]'
+    createTestFormFixture()
 
     formElement  = document.getElementById 'test-form'
     cityElement  = formElement['city']
-    stateElement = formElement['state']
-    zipElement   = formElement['zip']
 
     form      = new Form(formElement)
     validator = FormValidator.create()
@@ -41,10 +36,10 @@ describe "FormValidator", ->
     describe "when the element is invalid", ->
 
       it "will return false", ->
-        stateElement.value = "Texas"
-        expect(validator.validateElement stateElement).toBeFalsy()
+        cityElement.value = 5
+        expect(validator.validateElement cityElement).toBeFalsy()
 
       it "will mark the element with a validity message", ->
-        zipElement.value = "Tim"
-        validator.validateElement zipElement
-        expect(zipElement.validationMessage).toEqual "This field only accepts numbers (0-9)."
+        cityElement.value = 5
+        validator.validateElement cityElement
+        expect(cityElement.validationMessage).toEqual "This field only accepts numbers and characters (0-9, A-Z, a-z)."
