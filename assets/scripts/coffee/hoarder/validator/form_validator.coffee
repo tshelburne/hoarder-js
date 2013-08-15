@@ -1,4 +1,6 @@
-#AlphaConstraint = require "/hoarder/validator/constraints/alpha_constraint"
+ValidationRule = require 'hoarder/validator/rules/validation_rule'
+
+AlphaConstraint = require "hoarder/validator/constraints/alpha_constraint"
 AlphanumericConstraint = require "hoarder/validator/constraints/alphanumeric_constraint"
 CreditCardConstraint = require "hoarder/validator/constraints/credit_card_constraint"
 EmailConstraint = require "hoarder/validator/constraints/email_constraint"
@@ -14,10 +16,9 @@ RequiredConstraint = require "hoarder/validator/constraints/required_constraint"
 # a class to validate forms and form elements
 #
 class FormValidator
-  constructor: (@constraints)->
-    
-  @default: ->
-    new @([
+
+  @libraryConstraints = [
+      new AlphaConstraint()
       new AlphanumericConstraint()
       new CreditCardConstraint()
       new EmailConstraint()
@@ -26,28 +27,37 @@ class FormValidator
       new NumericConstraint()
       new PhoneConstraint()
       new RequiredConstraint()
-    ])
+    ]
+    
+  @create: -> new @(FormValidator.libraryConstraints)
+
+  constructor: (@constraints)->
 
   validateForm: (form)->
-    errors = []
+    isValid = true
     for element in form.elements()
-      errors = errors.concat @validateElement(element)
-    errors
+      isValid = false unless @validateElement(element)
+    isValid
 
   validateElement: (element)->
-    for rule in element.validationRules
-      ruleParts = rule.split('=')
-      type = ruleParts[0]
-      context = {}
-      context.value = ruleParts[1] if ruleParts.length > 1
+    for ruleString in validationStringsFrom element
+      rule = ValidationRule.fromString ruleString
 
       for constraint in @constraints
-        if constraint.canHandle type
-          errors = constraint.handle element, context
-          if errors.length > 0
-            element.addError(errors[0])
-            return errors
+        constraint.handle(element, rule) if constraint.canHandle rule
+        break unless isValid element
 
-    return []
+      break unless isValid element
+
+    isValid element
+
+  # private
+
+  validationStringsFrom = (element)->
+    validationAttribute = element.getAttribute("data-validation") 
+    return [] unless validationAttribute? 
+    (ruleString.trim() for ruleString in validationAttribute.split(',')) 
+
+  isValid = (element)-> not element.validity.customError
 
 return FormValidator
