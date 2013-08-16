@@ -7,7 +7,7 @@ module Hoarder
 	end
 	
 	def self.keystone_compiler
-		@@keystone_compiler ||= pipeline.compiler("hoarder.js")
+		@@keystone_compiler ||= pipeline.compiler("hoarder.min.js")
 	end
 
 	def self.root_path

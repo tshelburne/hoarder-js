@@ -23,7 +23,7 @@ task default: :'test:jasmine'
 namespace :test do
 
 	desc "Run Jasmine tests"
-	Jasmine::Headless::Task.new(jasmine: :assets) do |t|
+	Jasmine::Headless::Task.new(jasmine: 'compile:test') do |t|
 	  t.colors = true
 	  t.keep_on_error = true
 	  t.jasmine_config = './spec/jasmine.yml'
@@ -31,14 +31,24 @@ namespace :test do
 	
 end
 
-desc "Build assets"
-Keystone::RakeTask.new :assets do |t|
-  t.config_file = "config/assets.rb"
-  t.output_path = 'bin'
+namespace :compile do
+
+	desc "Build production assets"
+	Keystone::RakeTask.new :production do |t|
+	  t.config_file = "config/assets.rb"
+	  t.output_path = 'bin'
+	end
+
+	desc "Build tests assets"
+	Keystone::RakeTask.new :test do |t|
+		t.config_file = "spec/config/assets.rb"
+		t.output_path = "spec/bin"
+	end
+
 end
 
 desc "Build binaries"
 task :binaries do |t|
-	Rake::Task[:assets].invoke
-	`gzip -c bin/hoarder.js > bin/hoarder.js.gz`
+	Rake::Task['compile:production'].invoke
+	`gzip -c bin/hoarder.min.js > bin/hoarder.min.js.gz`
 end
