@@ -1,32 +1,48 @@
+require 'patches/event_listeners'
+
 Signal = require "cronus/signal"
 SignalRelay = require "cronus/signal_relay"
 
+Form = require 'hoarder/form/form'
 FormSubmitter = require 'hoarder/submitter/form_submitter'
 FormValidator = require 'hoarder/validator/form_validator'
 
-#
-# @author - Tim Shelburne <tim@musiconelive.com>
-#
-# abstracts submitting and validating forms from the validator and submitter
-#
 class FormManager
-  constructor: (@formSubmitter, @formValidator)->
-    @validatedWithErrors = new Signal()
-    @submittedWithSuccess = new SignalRelay(@formSubmitter.submittedWithSuccess)
-    @submittedWithError = new SignalRelay(@formSubmitter.submittedWithError)
 
-  @default: (pollingUrl="")->
-    new @(FormSubmitter.default(pollingUrl), FormValidator.default())
+	@create: (pollingUrl="", pollFrequency=1000)->
+		new @(FormSubmitter.create(pollingUrl, pollFrequency), FormValidator.create())
 
-  validateForm: (form)->
-    @formValidator.validateForm(form)
+	constructor: (@formSubmitter, @formValidator)->
+		@validatedWithErrors = new Signal()
+		@submittedWithSuccess = new SignalRelay(@formSubmitter.submittedWithSuccess)
+		@submittedWithError = new SignalRelay(@formSubmitter.submittedWithError)
+		@_forms = [ ]
+		@_listeners = { }
 
-  submitForm: (form)->
-    errors = @validateForm(form)
+	manage: (formId, type='simple')-> 
+		throw new Error "'#{formId}' is already a managed form." if getForm.call(@, formId)?
+		formElement = document.getElementById formId
+		form = new Form(formElement)
+		formElement.addEventListener 'submit', @_listeners[formId] = (event)=>
+			event.preventDefault()
+			submit.call @, form, type
+		@_forms.push form
+		form
 
-    if (errors.length > 0)
-      @validatedWithErrors.dispatch(errors)
-    else
-      @formSubmitter.submitForm(form)
+	release: (formId)->
+		form = getForm.call @, formId
+		form.formElement.removeEventListener 'submit', @_listeners[formId]
+		delete @_listeners[formId]
+		@_forms.splice @_forms.indexOf(form), 1
+
+	getForm = (formId)-> 
+		for form in @_forms 
+			return form if form.formElement.id is formId
+
+	submit = (form, type)-> 
+		if @formValidator.validateForm form
+			@formSubmitter.submit form, type
+		else 
+			@validatedWithErrors.dispatch form
 
 return FormManager

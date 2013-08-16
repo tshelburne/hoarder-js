@@ -1,43 +1,131 @@
 FormManager = require "hoarder/form_manager"
+FormValidator = require 'hoarder/validator/form_validator'
+FormSubmitter = require 'hoarder/submitter/form_submitter'
+Form = require 'hoarder/form/form'
 
 describe "FormManager", ->
-  manager = null
+	manager = submitter = validator = null
 
-  beforeEach ->
-    manager = FormManager.default()
+	reqwestCallback = null
+	reqwestResponse = null
+	reqwestSpy = (params)-> params[reqwestCallback].apply null, reqwestResponse
 
-  describe "when working with the FormValidator", ->
-    it "can validate forms", ->
-      errors = manager.validateForm(mocks.simpleForm)
-      expect(errors.length).toEqual 0
-      errors = manager.validateForm(mocks.invalidForm)
-      expect(errors.length).toEqual 4
+	# these are a result of using Function::apply above
+	successResponse = -> reqwestResponse[0]
+	errorResponse = -> reqwestResponse[1]
 
-    describe "and the FormSubmitter", ->
-      response = null
-      success = (form, data)->
-        response = { form: form, data: data }
-      error = (form, text)->
-        response = { form: form, text: text }
+	callbacks =
+		validateErrorHappened: (form)->
+		submitSuccessHappened: (form, data)->
+		submitErrorHappened: (form, errorMessage)->
 
-      beforeEach ->
-        response = null
-        manager.submittedWithSuccess.add(success)
-        manager.submittedWithError.add(error)
+	beforeEach ->
+		createTestFormFixture()
 
-      it "can return validation errors when submitting a form", ->
-        spyOn(manager.validatedWithErrors, "dispatch")
-        manager.submitForm mocks.invalidForm
-        expect(manager.validatedWithErrors.dispatch).toHaveBeenCalled()
+		submitter = FormSubmitter.create('/polling-url', 500)
+		validator = FormValidator.create()
+		manager = new FormManager(submitter, validator)
 
-      it "can submit a form and relay a success message", ->
-        spyOn(manager.formSubmitter, "submitForm").andCallFake (form)-> @submittedWithSuccess.dispatch(form, "success")
-        manager.submitForm mocks.simpleForm
-        expect(response.form).toBe mocks.simpleForm
-        expect(response.data).toEqual "success"
+		reqwestCallback = "success"
+		spyOn(callbacks, 'validateErrorHappened').andCallThrough()
+		spyOn(callbacks, 'submitSuccessHappened').andCallThrough()
+		spyOn(callbacks, 'submitErrorHappened').andCallThrough()
+		manager.validatedWithErrors.add callbacks.validateErrorHappened
+		manager.submittedWithSuccess.add callbacks.submitSuccessHappened
+		manager.submittedWithError.add callbacks.submitErrorHappened
+		spyOn(window, 'reqwest').andCallFake(reqwestSpy)
 
-      it "can submit a form and relay an error message", ->
-        spyOn(manager.formSubmitter, "submitForm").andCallFake (form)-> @submittedWithError.dispatch(form, "error")
-        manager.submitForm mocks.simpleForm
-        expect(response.form).toBe mocks.simpleForm
-        expect(response.text).toEqual "error"
+	describe '::create', ->
+
+		it "will return a FormManager using the default classes", ->
+			expect(FormManager.create().constructor).toEqual FormManager
+
+	describe '#manage', ->
+		form = null
+
+		beforeEach ->
+			form = manager.manage('test-form')
+
+		it "will return a Hoarder form", ->
+			expect(form.constructor).toEqual Form
+
+		it "will throw if the form is already managed", ->
+			expect(-> manager.manage('test-form')).toThrow()
+
+		describe "when the form is submitted", ->
+
+			describe "and all or part of the form is invalid", ->
+
+				beforeEach ->
+					document.getElementById('city').value = 5
+					document.getElementById('submit').click()
+
+				it "will call callbacks added to the validatedWithErrors signal", ->
+					expect(callbacks.validateErrorHappened).toHaveBeenCalledWith(form)
+
+			describe "and the form is valid", ->
+
+				describe "and submission is successful", ->
+
+					beforeEach ->
+						reqwestResponse = mocks.simpleSuccessResponse
+						document.getElementById('submit').click()
+
+					it "will call callbacks added to the submittedWithSuccess", ->
+						expect(callbacks.submitSuccessHappened).toHaveBeenCalledWith(form, successResponse())
+
+				describe "and submission is not successful", ->
+
+					beforeEach ->
+						reqwestCallback = 'error'
+						reqwestResponse = mocks.errorResponse
+						document.getElementById('submit').click()
+
+					it "will call callbacks added to the submittedWithError", ->
+						expect(callbacks.submitErrorHappened).toHaveBeenCalledWith(form, errorResponse())
+
+	describe '#release', ->
+		formElement = null
+
+		beforeEach ->
+			formElement = document.getElementById 'test-form'
+			formElement.addEventListener 'submit', (e)-> e.preventDefault()
+
+			manager.manage 'test-form'
+			manager.release 'test-form'
+
+		it "will allow re-managing the form without throwing an error", ->
+			expect(-> manager.manage 'test-form').not.toThrow()
+
+		it "will no longer call the validation callbacks", ->
+			document.getElementById('city').value = 5
+			document.getElementById('submit').click()
+			expect(callbacks.validateErrorHappened).not.toHaveBeenCalled()
+
+		it "will no longer call the success callbacks", ->
+			reqwestResponse = mocks.simpleSuccessResponse
+			document.getElementById('submit').click()
+			expect(callbacks.submitSuccessHappened).not.toHaveBeenCalled()
+
+		it "will no longer call the error callbacks", ->
+			reqwestCallback = 'error'
+			reqwestResponse = mocks.errorResponse
+			document.getElementById('submit').click()
+			expect(callbacks.submitErrorHappened).not.toHaveBeenCalled()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -14,6 +14,6 @@ createTestFormFixture = ->
   
   formFixture.affix 'input#zip[type="text"][name="zip"][value="78751"][data-validation="numeric"]'
 
-  formFixture.affix 'button[type="submit"]'
+  formFixture.affix 'button#submit[type="submit"]'
 
 globalize(createTestFormFixture, 'createTestFormFixture')
