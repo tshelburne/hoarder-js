@@ -4,7 +4,7 @@ Form = require 'hoarder/form/form'
 describe 'FormSerializer', ->
 
 	beforeEach ->
-		form = affix 'form#test-form'
+		form = affix 'form#serializable-form'
 
 		form.affix 'input[type="text"][name="text"][value="text-value"]'
 		form.affix 'input[type="hidden"][name="hidden"][value="hidden-value"]'
@@ -40,8 +40,9 @@ describe 'FormSerializer', ->
 		serializedString = null
 
 		beforeEach ->
-			testForm = new Form "test-form"
-			serializedString = FormSerializer.toString testForm
+			formElement = document.getElementById 'serializable-form'
+			form = new Form(formElement)
+			serializedString = FormSerializer.toString form
 
 		describe "when serializing INPUT elements", ->
 
