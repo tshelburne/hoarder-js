@@ -10,8 +10,8 @@ class SimpleSubmitter extends BaseSubmitter
 
   submit: (form)->
     reqwest(
-      url: form.action
-      type: form.method
+      url: form.action()
+      method: form.method()
       data: form.serialize()
       success: (data)=> @submittedWithSuccess.dispatch(form, data)
       error: (xhr, text)=> @submittedWithError.dispatch(form, text)
