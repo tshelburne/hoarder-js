@@ -10,8 +10,8 @@ class PollingSubmitter extends BaseSubmitter
 
   submit: (form)->
     reqwest(
-      url: form.action
-      type: form.method
+      url: form.action()
+      method: form.method()
       data: form.serialize()
       success: (data)=> @poll(form, data.processId)
       error: (xhr, text)=> @submittedWithError.dispatch(form, text)
@@ -20,7 +20,7 @@ class PollingSubmitter extends BaseSubmitter
   poll: (form, processId)=>  
     reqwest(
       url: @pollUrl
-      type: "POST"
+      method: "POST"
       data: "processId=#{processId}"
       success: (data)=> pollSuccess.call @, form, processId, data
       error: (xhr, text)=> @submittedWithError.dispatch(form, text)
