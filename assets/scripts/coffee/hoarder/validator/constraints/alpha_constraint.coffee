@@ -7,6 +7,6 @@ class AlphaConstraint extends BaseConstraint
 
   rulePasses: (element)-> element.value.match(/^[A-Za-z\s]*$/)
 
-  errorMessage: -> "This field only accepts numbers and characters (0-9, A-Z, a-z)."
+  errorMessage: -> "This field only accepts characters (A-Z, a-z)."
 
 return AlphaConstraint
