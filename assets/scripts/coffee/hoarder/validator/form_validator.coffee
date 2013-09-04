@@ -29,12 +29,11 @@ class FormValidator
   constructor: (@constraints)->
 
   validateForm: (form)->
-    isValid = true
-    for element in form.elements()
-      isValid = false unless @validateElement(element)
-    isValid
+    @validateElement(element) for element in form.elements()
+    form.checkValidity()
 
   validateElement: (element)->
+    element.setCustomValidity ""
     for ruleString in validationStringsFrom element
       rule = ValidationRule.fromString ruleString
 
@@ -53,6 +52,6 @@ class FormValidator
     return [] unless validationAttribute? 
     (ruleString.trim() for ruleString in validationAttribute.split(',')) 
 
-  isValid = (element)-> not element.validity.customError
+  isValid = (element)-> element.validity.valid
 
 return FormValidator

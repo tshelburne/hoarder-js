@@ -19,14 +19,21 @@ describe "FormValidator", ->
     it "will return true if the form is valid", ->
       expect(validator.validateForm form).toBeTruthy()
 
-    it "will return false if any part of the form is invalid", ->
-      cityElement.value = 5
-      expect(validator.validateForm form).toBeFalsy()
+    describe "when part of the form is invalid", ->
 
-    it "will mark the invalid elements with a validity message", ->
-      cityElement.value = 5
-      validator.validateForm form
-      expect(cityElement.validationMessage).toEqual "This field only accepts numbers and characters (0-9, A-Z, a-z)."
+      beforeEach ->
+        cityElement.value = 5
+
+      it "will return false", ->
+        expect(validator.validateForm form).toBeFalsy()
+
+      it "will mark the invalid elements as invalid", ->
+        validator.validateForm form
+        expect(cityElement.validity.valid).toBeFalsy()
+
+      it "will mark the invalid elements with a validity message", ->
+        validator.validateForm form
+        expect(cityElement.validationMessage).toEqual "This field only accepts characters (A-Z, a-z)."
 
   describe '#validateElement', ->
 
@@ -35,11 +42,36 @@ describe "FormValidator", ->
 
     describe "when the element is invalid", ->
 
-      it "will return false", ->
+      beforeEach ->
         cityElement.value = 5
+
+      it "will return false", ->
         expect(validator.validateElement cityElement).toBeFalsy()
 
-      it "will mark the element with a validity message", ->
-        cityElement.value = 5
+      it "will mark the element as invalid", ->
         validator.validateElement cityElement
-        expect(cityElement.validationMessage).toEqual "This field only accepts numbers and characters (0-9, A-Z, a-z)."
+        expect(cityElement.validity.valid).toBeFalsy()
+
+      it "will mark the element with a validity message", ->
+        validator.validateElement cityElement
+        expect(cityElement.validationMessage).toEqual "This field only accepts characters (A-Z, a-z)."
+
+      describe "and then the element is corrected", ->
+
+        beforeEach ->
+          validator.validateElement cityElement
+          cityElement.value = "Austin"
+
+        it "will return true", ->
+          # cityElement.setCustomValidity ""
+          expect(validator.validateElement cityElement).toBeTruthy()
+
+        it "will mark the element as valid", ->
+          # cityElement.setCustomValidity ""
+          validator.validateElement cityElement
+          expect(cityElement.validity.valid).toBeTruthy()
+
+        it "will remove the validationMessage", ->
+          # cityElement.setCustomValidity ""
+          validator.validateElement cityElement
+          expect(cityElement.validationMessage).toEqual ""

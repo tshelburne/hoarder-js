@@ -36,6 +36,10 @@
       return this.formElement.method;
     };
 
+    Form.prototype.checkValidity = function() {
+      return this.formElement.checkValidity();
+    };
+
     Form.prototype.addElement = function(name, value) {
       var element;
 
@@ -487,8 +491,8 @@
       var _this = this;
 
       return reqwest({
-        url: form.action,
-        type: form.method,
+        url: form.action(),
+        method: form.method(),
         data: form.serialize(),
         success: function(data) {
           return _this.poll(form, data.processId);
@@ -504,7 +508,7 @@
 
       return reqwest({
         url: this.pollUrl,
-        type: "POST",
+        method: "POST",
         data: "processId=" + processId,
         success: function(data) {
           return pollSuccess.call(_this, form, processId, data);
@@ -570,8 +574,8 @@
       var _this = this;
 
       return reqwest({
-        url: form.action,
-        type: form.method,
+        url: form.action(),
+        method: form.method(),
         data: form.serialize(),
         success: function(data) {
           return _this.submittedWithSuccess.dispatch(form, data);
@@ -623,7 +627,7 @@
     };
 
     AlphaConstraint.prototype.errorMessage = function() {
-      return "This field only accepts numbers and characters (0-9, A-Z, a-z).";
+      return "This field only accepts characters (A-Z, a-z).";
     };
 
     return AlphaConstraint;
@@ -1077,22 +1081,20 @@
     }
 
     FormValidator.prototype.validateForm = function(form) {
-      var element, isValid, _i, _len, _ref;
+      var element, _i, _len, _ref;
 
-      isValid = true;
       _ref = form.elements();
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         element = _ref[_i];
-        if (!this.validateElement(element)) {
-          isValid = false;
-        }
+        this.validateElement(element);
       }
-      return isValid;
+      return form.checkValidity();
     };
 
     FormValidator.prototype.validateElement = function(element) {
       var constraint, rule, ruleString, _i, _j, _len, _len1, _ref, _ref1;
 
+      element.setCustomValidity("");
       _ref = validationStringsFrom(element);
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         ruleString = _ref[_i];
@@ -1131,7 +1133,7 @@
     };
 
     isValid = function(element) {
-      return !element.validity.customError;
+      return element.validity.valid;
     };
 
     return FormValidator;
