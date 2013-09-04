@@ -1,3 +1,5 @@
+v0.0.3 fixed submitter bugs in the reqwest calls, and fixed validation bugs preventing correcting a form
+
 v0.0.2 removed all dependencies on jquery and update library API - version 1.0.0 pending successful use in a production project
 
 v0.0.1 new library
