@@ -5,7 +5,7 @@ runner_output: "spec/runner.html"
 # Return an array of filepaths relative to src_dir to include before jasmine specs.
 # Default: []
 src_files:
-  - bin/*.js
+  - spec/bin/*.js
 
 # stylesheets
 #
