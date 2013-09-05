@@ -12,10 +12,10 @@ class FormValidator
 
   validateForm: (form)->
     @validateElement(element) for element in form.elements()
-    form.checkValidity()
+    form.isValid()
 
   validateElement: (element)->
-    clearValidationErrorsOn element
+    clearCustomErrorOn element
     
     type = element.getAttribute("type")
     for constraint in @constraints
@@ -26,7 +26,7 @@ class FormValidator
 
   # private
 
-  clearValidationErrorsOn = (element)-> markValidityAs element, ""
+  clearCustomErrorOn = (element)-> markValidityAs element, ""
 
   markValidityAs = (element, message)-> element.setCustomValidity message
 
