@@ -46,14 +46,14 @@ describe "Form", ->
 		it "will return the method attribute of the referenced form", ->
 			expect(form.method()).toEqual "post"
 
-	describe '#checkValidity', ->
+	describe '#isValid', ->
 
 		it "will return true when all form elements are marked as valid", ->
-			expect(form.checkValidity()).toBeTruthy()
+			expect(form.isValid()).toBeTruthy()
 
 		it "will return false when any form element is marked as invalid", ->
 			addressElement.setCustomValidity "Invalid element"
-			expect(form.checkValidity()).toBeFalsy()
+			expect(form.isValid()).toBeFalsy()
 
 	describe '#addElement', ->
 
