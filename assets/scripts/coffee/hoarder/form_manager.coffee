@@ -13,22 +13,23 @@ class FormManager
 	@create: (pollingUrl="", pollFrequency=1000)->
 		new @(FormSubmitter.create(pollingUrl, pollFrequency), FormValidator.create())
 
-	constructor: (@formSubmitter, @formValidator)->
+	constructor: (@submitter, @validator)->
 		@validatedWithErrors = new Signal()
-		@submittedWithSuccess = new SignalRelay(@formSubmitter.submittedWithSuccess)
-		@submittedWithError = new SignalRelay(@formSubmitter.submittedWithError)
-		@_forms = [ ]
-		@_listeners = { }
+		@submittedWithSuccess = new SignalRelay(@submitter.submittedWithSuccess)
+		@submittedWithError = new SignalRelay(@submitter.submittedWithError)
+		@_forms = []
+		@_listeners = {}
 
 	manage: (formId, type='simple')-> 
 		throw new Error "'#{formId}' is already a managed form." if getForm.call(@, formId)?
-		form = setupHoarderForm.call @, formId, type
+		form = buildHoarderForm.call @, formId, type
 		@_forms.push form
 		form
 
 	release: (formId)->
 		form = getForm.call @, formId
-		form.formElement.removeEventListener 'submit', @_listeners[formId]
+		form.formElement.removeEventListener 'click', @_listeners[formId]['click']
+		form.formElement.removeEventListener 'submit', @_listeners[formId]['submit']
 		delete @_listeners[formId]
 		@_forms.splice @_forms.indexOf(form), 1
 
@@ -36,21 +37,22 @@ class FormManager
 
 	getForm = (formId)-> 
 		for form in @_forms 
-			return form if form.formElement.id is formId
+			return form if form.formElement.id is formId 
 
-	submit = (form, type)-> 
-		if @formValidator.validateForm form
-			@formSubmitter.submit form, type
-		else 
-			@validatedWithErrors.dispatch form
+	validate = (form)-> @validatedWithErrors.dispatch form unless @validator.validateForm form
 
-	setupHoarderForm = (formId, type)->
+	submit = (form, type)-> @submitter.submit form, type
+
+	buildHoarderForm = (formId, type)->
 		formElement = document.getElementById formId
 		H5F.setup formElement # make sure our form is HTML5 compliant
 		form = new Form(formElement)
-		formElement.addEventListener 'submit', @_listeners[formId] = (event)=>
+		@_listeners[formId] = {}
+		formElement.addEventListener 'click', @_listeners[formId]['click'] = (event)=>
+			validate.call @, form if event.target.type is 'submit'
+		formElement.addEventListener 'submit', @_listeners[formId]['submit'] = (event)=>
 			event.preventDefault()
-			submit.call @, form, type
+			submit.call @, form, type if form.isValid()
 		form
 
 return FormManager

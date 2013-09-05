@@ -36,7 +36,7 @@
       return this.formElement.method;
     };
 
-    Form.prototype.checkValidity = function() {
+    Form.prototype.isValid = function() {
       return this.formElement.checkValidity();
     };
 
@@ -250,7 +250,7 @@
   FormValidator = require('hoarder/validator/form_validator');
 
   FormManager = (function() {
-    var getForm, setupHoarderForm, submit;
+    var buildHoarderForm, getForm, submit, validate;
 
     FormManager.create = function(pollingUrl, pollFrequency) {
       if (pollingUrl == null) {
@@ -262,12 +262,12 @@
       return new this(FormSubmitter.create(pollingUrl, pollFrequency), FormValidator.create());
     };
 
-    function FormManager(formSubmitter, formValidator) {
-      this.formSubmitter = formSubmitter;
-      this.formValidator = formValidator;
+    function FormManager(submitter, validator) {
+      this.submitter = submitter;
+      this.validator = validator;
       this.validatedWithErrors = new Signal();
-      this.submittedWithSuccess = new SignalRelay(this.formSubmitter.submittedWithSuccess);
-      this.submittedWithError = new SignalRelay(this.formSubmitter.submittedWithError);
+      this.submittedWithSuccess = new SignalRelay(this.submitter.submittedWithSuccess);
+      this.submittedWithError = new SignalRelay(this.submitter.submittedWithError);
       this._forms = [];
       this._listeners = {};
     }
@@ -281,7 +281,7 @@
       if (getForm.call(this, formId) != null) {
         throw new Error("'" + formId + "' is already a managed form.");
       }
-      form = setupHoarderForm.call(this, formId, type);
+      form = buildHoarderForm.call(this, formId, type);
       this._forms.push(form);
       return form;
     };
@@ -290,7 +290,8 @@
       var form;
 
       form = getForm.call(this, formId);
-      form.formElement.removeEventListener('submit', this._listeners[formId]);
+      form.formElement.removeEventListener('click', this._listeners[formId]['click']);
+      form.formElement.removeEventListener('submit', this._listeners[formId]['submit']);
       delete this._listeners[formId];
       return this._forms.splice(this._forms.indexOf(form), 1);
     };
@@ -307,24 +308,34 @@
       }
     };
 
-    submit = function(form, type) {
-      if (this.formValidator.validateForm(form)) {
-        return this.formSubmitter.submit(form, type);
-      } else {
+    validate = function(form) {
+      if (!this.validator.validateForm(form)) {
         return this.validatedWithErrors.dispatch(form);
       }
     };
 
-    setupHoarderForm = function(formId, type) {
+    submit = function(form, type) {
+      return this.submitter.submit(form, type);
+    };
+
+    buildHoarderForm = function(formId, type) {
       var form, formElement,
         _this = this;
 
       formElement = document.getElementById(formId);
       H5F.setup(formElement);
       form = new Form(formElement);
-      formElement.addEventListener('submit', this._listeners[formId] = function(event) {
+      this._listeners[formId] = {};
+      formElement.addEventListener('click', this._listeners[formId]['click'] = function(event) {
+        if (event.target.type === 'submit') {
+          return validate.call(_this, form);
+        }
+      });
+      formElement.addEventListener('submit', this._listeners[formId]['submit'] = function(event) {
         event.preventDefault();
-        return submit.call(_this, form, type);
+        if (form.isValid()) {
+          return submit.call(_this, form, type);
+        }
       });
       return form;
     };
@@ -708,7 +719,7 @@
   CreditCardConstraint = require("hoarder/validator/constraints/credit_card_constraint");
 
   FormValidator = (function() {
-    var clearValidationErrorsOn, isValid, markValidityAs;
+    var clearCustomErrorOn, isValid, markValidityAs;
 
     FormValidator.libraryConstraints = [new CreditCardConstraint()];
 
@@ -728,13 +739,13 @@
         element = _ref[_i];
         this.validateElement(element);
       }
-      return form.checkValidity();
+      return form.isValid();
     };
 
     FormValidator.prototype.validateElement = function(element) {
       var constraint, type, _i, _len, _ref;
 
-      clearValidationErrorsOn(element);
+      clearCustomErrorOn(element);
       type = element.getAttribute("type");
       _ref = this.constraints;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -749,7 +760,7 @@
       return isValid(element);
     };
 
-    clearValidationErrorsOn = function(element) {
+    clearCustomErrorOn = function(element) {
       return markValidityAs(element, "");
     };
 
