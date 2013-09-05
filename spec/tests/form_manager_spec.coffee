@@ -20,7 +20,7 @@ describe "FormManager", ->
 		submitErrorHappened: (form, errorMessage)->
 
 	beforeEach ->
-		createTestFormFixture()
+		createCreditCardFormFixture()
 
 		submitter = FormSubmitter.create('/polling-url', 500)
 		validator = FormValidator.create()
@@ -52,18 +52,28 @@ describe "FormManager", ->
 		it "will throw if the form is already managed", ->
 			expect(-> manager.manage('test-form')).toThrow()
 
-		describe "when the form is submitted", ->
+		describe "when the submit button is clicked", ->
 
 			describe "and all or part of the form is invalid", ->
 
 				beforeEach ->
-					document.getElementById('city').value = 5
+					spyOn(submitter, 'submit')
+					document.getElementById('card-number').value = '12345'
 					document.getElementById('submit').click()
 
 				it "will call callbacks added to the validatedWithErrors signal", ->
 					expect(callbacks.validateErrorHappened).toHaveBeenCalledWith(form)
 
+				it "will not submit the form", ->
+					expect(submitter.submit).not.toHaveBeenCalled()
+
 			describe "and the form is valid", ->
+
+				it "will attempt to submit the form", ->
+					spyOn(submitter, 'submit')
+					reqwestResponse = mocks.simpleSuccessResponse
+					document.getElementById('submit').click()
+					expect(submitter.submit).toHaveBeenCalledWith(form, 'simple')
 
 				describe "and submission is successful", ->
 
@@ -98,7 +108,7 @@ describe "FormManager", ->
 			expect(-> manager.manage 'test-form').not.toThrow()
 
 		it "will no longer call the validation callbacks", ->
-			document.getElementById('city').value = 5
+			document.getElementById('card-number').value = '12345'
 			document.getElementById('submit').click()
 			expect(callbacks.validateErrorHappened).not.toHaveBeenCalled()
 
@@ -112,20 +122,3 @@ describe "FormManager", ->
 			reqwestResponse = mocks.errorResponse
 			document.getElementById('submit').click()
 			expect(callbacks.submitErrorHappened).not.toHaveBeenCalled()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

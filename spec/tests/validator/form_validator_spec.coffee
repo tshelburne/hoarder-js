@@ -3,13 +3,13 @@ FormValidator = require "hoarder/validator/form_validator"
 
 describe "FormValidator", ->
   validator = null
-  form = cityElement = null
+  form = cardNumberElement = null
 
   beforeEach ->
-    createTestFormFixture()
+    createCreditCardFormFixture()
 
     formElement  = document.getElementById 'test-form'
-    cityElement  = formElement['city']
+    cardNumberElement  = formElement['card-number']
 
     form      = new Form(formElement)
     validator = FormValidator.create()
@@ -22,56 +22,53 @@ describe "FormValidator", ->
     describe "when part of the form is invalid", ->
 
       beforeEach ->
-        cityElement.value = 5
+        cardNumberElement.value = '12345'
 
       it "will return false", ->
         expect(validator.validateForm form).toBeFalsy()
 
       it "will mark the invalid elements as invalid", ->
         validator.validateForm form
-        expect(cityElement.validity.valid).toBeFalsy()
+        expect(cardNumberElement.validity.valid).toBeFalsy()
 
       it "will mark the invalid elements with a validity message", ->
         validator.validateForm form
-        expect(cityElement.validationMessage).toEqual "This field only accepts characters (A-Z, a-z)."
+        expect(cardNumberElement.validationMessage).toEqual "Please enter a valid credit card number."
 
   describe '#validateElement', ->
 
     it "will return true if the element is valid", ->
-      expect(validator.validateElement cityElement).toBeTruthy()
+      expect(validator.validateElement cardNumberElement).toBeTruthy()
 
     describe "when the element is invalid", ->
 
       beforeEach ->
-        cityElement.value = 5
+        cardNumberElement.value = '12345'
 
       it "will return false", ->
-        expect(validator.validateElement cityElement).toBeFalsy()
+        expect(validator.validateElement cardNumberElement).toBeFalsy()
 
       it "will mark the element as invalid", ->
-        validator.validateElement cityElement
-        expect(cityElement.validity.valid).toBeFalsy()
+        validator.validateElement cardNumberElement
+        expect(cardNumberElement.validity.valid).toBeFalsy()
 
       it "will mark the element with a validity message", ->
-        validator.validateElement cityElement
-        expect(cityElement.validationMessage).toEqual "This field only accepts characters (A-Z, a-z)."
+        validator.validateElement cardNumberElement
+        expect(cardNumberElement.validationMessage).toEqual "Please enter a valid credit card number."
 
       describe "and then the element is corrected", ->
 
         beforeEach ->
-          validator.validateElement cityElement
-          cityElement.value = "Austin"
+          validator.validateElement cardNumberElement
+          cardNumberElement.value = "4111111111111111"
 
         it "will return true", ->
-          # cityElement.setCustomValidity ""
-          expect(validator.validateElement cityElement).toBeTruthy()
+          expect(validator.validateElement cardNumberElement).toBeTruthy()
 
         it "will mark the element as valid", ->
-          # cityElement.setCustomValidity ""
-          validator.validateElement cityElement
-          expect(cityElement.validity.valid).toBeTruthy()
+          validator.validateElement cardNumberElement
+          expect(cardNumberElement.validity.valid).toBeTruthy()
 
         it "will remove the validationMessage", ->
-          # cityElement.setCustomValidity ""
-          validator.validateElement cityElement
-          expect(cityElement.validationMessage).toEqual ""
+          validator.validateElement cardNumberElement
+          expect(cardNumberElement.validationMessage).toEqual ""

@@ -11,7 +11,7 @@ class Form
 
 	method: -> @formElement.method
 
-	checkValidity: -> @formElement.checkValidity()
+	isValid: -> @formElement.checkValidity()
 
 	addElement: (name, value)->
 		throw new Error "'#{name}' already exists as an element on the form." if @hasElement name

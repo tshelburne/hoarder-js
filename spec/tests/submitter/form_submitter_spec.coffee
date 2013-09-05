@@ -20,7 +20,7 @@ describe "FormSubmitter", ->
     errorHappened: (form, errorMessage)->
 
   beforeEach ->
-    createTestFormFixture()
+    createAddressFormFixture()
 
     form = new Form(document.getElementById('test-form'))
     pollingSubmitter = new PollingSubmitter("/poll-url", 500)

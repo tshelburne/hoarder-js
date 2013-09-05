@@ -36,7 +36,7 @@
       return this.formElement.method;
     };
 
-    Form.prototype.checkValidity = function() {
+    Form.prototype.isValid = function() {
       return this.formElement.checkValidity();
     };
 
@@ -237,6 +237,8 @@
 
   require('patches/event_listeners');
 
+  require('lib/H5F');
+
   Signal = require("cronus/signal");
 
   SignalRelay = require("cronus/signal_relay");
@@ -248,7 +250,7 @@
   FormValidator = require('hoarder/validator/form_validator');
 
   FormManager = (function() {
-    var getForm, submit;
+    var buildHoarderForm, getForm, submit, validate;
 
     FormManager.create = function(pollingUrl, pollFrequency) {
       if (pollingUrl == null) {
@@ -260,19 +262,18 @@
       return new this(FormSubmitter.create(pollingUrl, pollFrequency), FormValidator.create());
     };
 
-    function FormManager(formSubmitter, formValidator) {
-      this.formSubmitter = formSubmitter;
-      this.formValidator = formValidator;
+    function FormManager(submitter, validator) {
+      this.submitter = submitter;
+      this.validator = validator;
       this.validatedWithErrors = new Signal();
-      this.submittedWithSuccess = new SignalRelay(this.formSubmitter.submittedWithSuccess);
-      this.submittedWithError = new SignalRelay(this.formSubmitter.submittedWithError);
+      this.submittedWithSuccess = new SignalRelay(this.submitter.submittedWithSuccess);
+      this.submittedWithError = new SignalRelay(this.submitter.submittedWithError);
       this._forms = [];
       this._listeners = {};
     }
 
     FormManager.prototype.manage = function(formId, type) {
-      var form, formElement,
-        _this = this;
+      var form;
 
       if (type == null) {
         type = 'simple';
@@ -280,12 +281,7 @@
       if (getForm.call(this, formId) != null) {
         throw new Error("'" + formId + "' is already a managed form.");
       }
-      formElement = document.getElementById(formId);
-      form = new Form(formElement);
-      formElement.addEventListener('submit', this._listeners[formId] = function(event) {
-        event.preventDefault();
-        return submit.call(_this, form, type);
-      });
+      form = buildHoarderForm.call(this, formId, type);
       this._forms.push(form);
       return form;
     };
@@ -294,7 +290,8 @@
       var form;
 
       form = getForm.call(this, formId);
-      form.formElement.removeEventListener('submit', this._listeners[formId]);
+      form.formElement.removeEventListener('click', this._listeners[formId]['click']);
+      form.formElement.removeEventListener('submit', this._listeners[formId]['submit']);
       delete this._listeners[formId];
       return this._forms.splice(this._forms.indexOf(form), 1);
     };
@@ -311,12 +308,36 @@
       }
     };
 
-    submit = function(form, type) {
-      if (this.formValidator.validateForm(form)) {
-        return this.formSubmitter.submit(form, type);
-      } else {
+    validate = function(form) {
+      if (!this.validator.validateForm(form)) {
         return this.validatedWithErrors.dispatch(form);
       }
+    };
+
+    submit = function(form, type) {
+      return this.submitter.submit(form, type);
+    };
+
+    buildHoarderForm = function(formId, type) {
+      var form, formElement,
+        _this = this;
+
+      formElement = document.getElementById(formId);
+      H5F.setup(formElement);
+      form = new Form(formElement);
+      this._listeners[formId] = {};
+      formElement.addEventListener('click', this._listeners[formId]['click'] = function(event) {
+        if (event.target.type === 'submit') {
+          return validate.call(_this, form);
+        }
+      });
+      formElement.addEventListener('submit', this._listeners[formId]['submit'] = function(event) {
+        event.preventDefault();
+        if (form.isValid()) {
+          return submit.call(_this, form, type);
+        }
+      });
+      return form;
     };
 
     return FormManager;
@@ -606,94 +627,6 @@
 
 (function() {
   var modules = window.modules || [];
-  var alpha_constraintCache = null;
-  var alpha_constraintFunc = function() {
-    return (function() {
-  var AlphaConstraint, BaseConstraint,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  BaseConstraint = require('hoarder/validator/constraints/base_constraint');
-
-  AlphaConstraint = (function(_super) {
-    __extends(AlphaConstraint, _super);
-
-    function AlphaConstraint() {
-      this.type = "alpha";
-    }
-
-    AlphaConstraint.prototype.rulePasses = function(element) {
-      return element.value.match(/^[A-Za-z\s]*$/);
-    };
-
-    AlphaConstraint.prototype.errorMessage = function() {
-      return "This field only accepts characters (A-Z, a-z).";
-    };
-
-    return AlphaConstraint;
-
-  })(BaseConstraint);
-
-  return AlphaConstraint;
-
-}).call(this);
-
-  };
-  modules.hoarder__validator__constraints__alpha_constraint = function() {
-    if (alpha_constraintCache === null) {
-      alpha_constraintCache = alpha_constraintFunc();
-    }
-    return alpha_constraintCache;
-  };
-  window.modules = modules;
-})();
-
-(function() {
-  var modules = window.modules || [];
-  var alphanumeric_constraintCache = null;
-  var alphanumeric_constraintFunc = function() {
-    return (function() {
-  var AlphanumericConstraint, BaseConstraint,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  BaseConstraint = require('hoarder/validator/constraints/base_constraint');
-
-  AlphanumericConstraint = (function(_super) {
-    __extends(AlphanumericConstraint, _super);
-
-    function AlphanumericConstraint() {
-      this.type = "alphanumeric";
-    }
-
-    AlphanumericConstraint.prototype.rulePasses = function(element) {
-      return element.value.match(/^[A-Za-z0-9\s]*$/);
-    };
-
-    AlphanumericConstraint.prototype.errorMessage = function() {
-      return "This field only accepts numbers and characters (0-9, A-Z, a-z).";
-    };
-
-    return AlphanumericConstraint;
-
-  })(BaseConstraint);
-
-  return AlphanumericConstraint;
-
-}).call(this);
-
-  };
-  modules.hoarder__validator__constraints__alphanumeric_constraint = function() {
-    if (alphanumeric_constraintCache === null) {
-      alphanumeric_constraintCache = alphanumeric_constraintFunc();
-    }
-    return alphanumeric_constraintCache;
-  };
-  window.modules = modules;
-})();
-
-(function() {
-  var modules = window.modules || [];
   var base_constraintCache = null;
   var base_constraintFunc = function() {
     return (function() {
@@ -704,13 +637,13 @@
       this.type = null;
     }
 
-    BaseConstraint.prototype.canHandle = function(rule) {
-      return rule.type === this.type;
+    BaseConstraint.prototype.canHandle = function(type) {
+      return type === this.type;
     };
 
-    BaseConstraint.prototype.handle = function(element, rule) {
-      if (!this.rulePasses(element, rule)) {
-        return element.setCustomValidity(this.errorMessage(rule, element));
+    BaseConstraint.prototype.handle = function(element, type) {
+      if (!this.rulePasses(element)) {
+        return element.setCustomValidity(this.errorMessage(element));
       }
     };
 
@@ -747,7 +680,7 @@
     __extends(CreditCardConstraint, _super);
 
     function CreditCardConstraint() {
-      this.type = "creditCard";
+      this.type = "creditcard";
     }
 
     CreditCardConstraint.prototype.rulePasses = function(element) {
@@ -778,299 +711,17 @@
 
 (function() {
   var modules = window.modules || [];
-  var email_constraintCache = null;
-  var email_constraintFunc = function() {
-    return (function() {
-  var BaseConstraint, EmailConstraint,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  BaseConstraint = require('hoarder/validator/constraints/base_constraint');
-
-  EmailConstraint = (function(_super) {
-    __extends(EmailConstraint, _super);
-
-    function EmailConstraint() {
-      this.type = "email";
-    }
-
-    EmailConstraint.prototype.rulePasses = function(element) {
-      return element.value.match(/^([a-zA-Z0-9_-]+)@([a-zA-Z0-9.-]+)\.([a-zA-Z]{2,4})$/i);
-    };
-
-    EmailConstraint.prototype.errorMessage = function() {
-      return "Please enter a valid email address.";
-    };
-
-    return EmailConstraint;
-
-  })(BaseConstraint);
-
-  return EmailConstraint;
-
-}).call(this);
-
-  };
-  modules.hoarder__validator__constraints__email_constraint = function() {
-    if (email_constraintCache === null) {
-      email_constraintCache = email_constraintFunc();
-    }
-    return email_constraintCache;
-  };
-  window.modules = modules;
-})();
-
-(function() {
-  var modules = window.modules || [];
-  var max_length_constraintCache = null;
-  var max_length_constraintFunc = function() {
-    return (function() {
-  var BaseConstraint, MaxLengthConstraint,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  BaseConstraint = require("hoarder/validator/constraints/base_constraint");
-
-  MaxLengthConstraint = (function(_super) {
-    __extends(MaxLengthConstraint, _super);
-
-    function MaxLengthConstraint() {
-      this.type = "maxLength";
-    }
-
-    MaxLengthConstraint.prototype.rulePasses = function(element, rule) {
-      return element.value.length <= rule.context;
-    };
-
-    MaxLengthConstraint.prototype.errorMessage = function(rule) {
-      return "The maximum length of this field is " + rule.context + ".";
-    };
-
-    return MaxLengthConstraint;
-
-  })(BaseConstraint);
-
-  return MaxLengthConstraint;
-
-}).call(this);
-
-  };
-  modules.hoarder__validator__constraints__max_length_constraint = function() {
-    if (max_length_constraintCache === null) {
-      max_length_constraintCache = max_length_constraintFunc();
-    }
-    return max_length_constraintCache;
-  };
-  window.modules = modules;
-})();
-
-(function() {
-  var modules = window.modules || [];
-  var min_length_constraintCache = null;
-  var min_length_constraintFunc = function() {
-    return (function() {
-  var BaseConstraint, MinLengthConstraint,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  BaseConstraint = require("hoarder/validator/constraints/base_constraint");
-
-  MinLengthConstraint = (function(_super) {
-    __extends(MinLengthConstraint, _super);
-
-    function MinLengthConstraint() {
-      this.type = "minLength";
-    }
-
-    MinLengthConstraint.prototype.rulePasses = function(element, rule) {
-      return element.value.length >= rule.context;
-    };
-
-    MinLengthConstraint.prototype.errorMessage = function(rule) {
-      return "The minimum length of this field is " + rule.context + ".";
-    };
-
-    return MinLengthConstraint;
-
-  })(BaseConstraint);
-
-  return MinLengthConstraint;
-
-}).call(this);
-
-  };
-  modules.hoarder__validator__constraints__min_length_constraint = function() {
-    if (min_length_constraintCache === null) {
-      min_length_constraintCache = min_length_constraintFunc();
-    }
-    return min_length_constraintCache;
-  };
-  window.modules = modules;
-})();
-
-(function() {
-  var modules = window.modules || [];
-  var numeric_constraintCache = null;
-  var numeric_constraintFunc = function() {
-    return (function() {
-  var BaseConstraint, NumericConstraint,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  BaseConstraint = require("hoarder/validator/constraints/base_constraint");
-
-  NumericConstraint = (function(_super) {
-    __extends(NumericConstraint, _super);
-
-    function NumericConstraint() {
-      this.type = "numeric";
-    }
-
-    NumericConstraint.prototype.rulePasses = function(element) {
-      return element.value.match(/^[0-9]*$/);
-    };
-
-    NumericConstraint.prototype.errorMessage = function() {
-      return "This field only accepts numbers (0-9).";
-    };
-
-    return NumericConstraint;
-
-  })(BaseConstraint);
-
-  return NumericConstraint;
-
-}).call(this);
-
-  };
-  modules.hoarder__validator__constraints__numeric_constraint = function() {
-    if (numeric_constraintCache === null) {
-      numeric_constraintCache = numeric_constraintFunc();
-    }
-    return numeric_constraintCache;
-  };
-  window.modules = modules;
-})();
-
-(function() {
-  var modules = window.modules || [];
-  var phone_constraintCache = null;
-  var phone_constraintFunc = function() {
-    return (function() {
-  var BaseConstraint, PhoneConstraint,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  BaseConstraint = require('hoarder/validator/constraints/base_constraint');
-
-  PhoneConstraint = (function(_super) {
-    __extends(PhoneConstraint, _super);
-
-    function PhoneConstraint() {
-      this.type = "phone";
-    }
-
-    PhoneConstraint.prototype.rulePasses = function(element) {
-      return element.value.match(/^\d?[.(\-]?\d\d\d[.)\-]?\d\d\d[.\-]?\d\d\d\d$/);
-    };
-
-    PhoneConstraint.prototype.errorMessage = function() {
-      return "Please enter a valid phone number.";
-    };
-
-    return PhoneConstraint;
-
-  })(BaseConstraint);
-
-  return PhoneConstraint;
-
-}).call(this);
-
-  };
-  modules.hoarder__validator__constraints__phone_constraint = function() {
-    if (phone_constraintCache === null) {
-      phone_constraintCache = phone_constraintFunc();
-    }
-    return phone_constraintCache;
-  };
-  window.modules = modules;
-})();
-
-(function() {
-  var modules = window.modules || [];
-  var required_constraintCache = null;
-  var required_constraintFunc = function() {
-    return (function() {
-  var BaseConstraint, RequiredConstraint,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  BaseConstraint = require('hoarder/validator/constraints/base_constraint');
-
-  RequiredConstraint = (function(_super) {
-    __extends(RequiredConstraint, _super);
-
-    function RequiredConstraint() {
-      this.type = "required";
-    }
-
-    RequiredConstraint.prototype.rulePasses = function(element) {
-      return (element.value != null) && element.value !== "";
-    };
-
-    RequiredConstraint.prototype.errorMessage = function() {
-      return "This field is required.";
-    };
-
-    return RequiredConstraint;
-
-  })(BaseConstraint);
-
-  return RequiredConstraint;
-
-}).call(this);
-
-  };
-  modules.hoarder__validator__constraints__required_constraint = function() {
-    if (required_constraintCache === null) {
-      required_constraintCache = required_constraintFunc();
-    }
-    return required_constraintCache;
-  };
-  window.modules = modules;
-})();
-
-(function() {
-  var modules = window.modules || [];
   var form_validatorCache = null;
   var form_validatorFunc = function() {
     return (function() {
-  var AlphaConstraint, AlphanumericConstraint, CreditCardConstraint, EmailConstraint, FormValidator, MaxLengthConstraint, MinLengthConstraint, NumericConstraint, PhoneConstraint, RequiredConstraint, ValidationRule;
-
-  ValidationRule = require('hoarder/validator/rules/validation_rule');
-
-  AlphaConstraint = require("hoarder/validator/constraints/alpha_constraint");
-
-  AlphanumericConstraint = require("hoarder/validator/constraints/alphanumeric_constraint");
+  var CreditCardConstraint, FormValidator;
 
   CreditCardConstraint = require("hoarder/validator/constraints/credit_card_constraint");
 
-  EmailConstraint = require("hoarder/validator/constraints/email_constraint");
-
-  MaxLengthConstraint = require("hoarder/validator/constraints/max_length_constraint");
-
-  MinLengthConstraint = require("hoarder/validator/constraints/min_length_constraint");
-
-  NumericConstraint = require("hoarder/validator/constraints/numeric_constraint");
-
-  PhoneConstraint = require("hoarder/validator/constraints/phone_constraint");
-
-  RequiredConstraint = require("hoarder/validator/constraints/required_constraint");
-
   FormValidator = (function() {
-    var isValid, validationStringsFrom;
+    var clearCustomErrorOn, isValid, markValidityAs;
 
-    FormValidator.libraryConstraints = [new AlphaConstraint(), new AlphanumericConstraint(), new CreditCardConstraint(), new EmailConstraint(), new MaxLengthConstraint(), new MinLengthConstraint(), new NumericConstraint(), new PhoneConstraint(), new RequiredConstraint()];
+    FormValidator.libraryConstraints = [new CreditCardConstraint()];
 
     FormValidator.create = function() {
       return new this(FormValidator.libraryConstraints);
@@ -1088,26 +739,19 @@
         element = _ref[_i];
         this.validateElement(element);
       }
-      return form.checkValidity();
+      return form.isValid();
     };
 
     FormValidator.prototype.validateElement = function(element) {
-      var constraint, rule, ruleString, _i, _j, _len, _len1, _ref, _ref1;
+      var constraint, type, _i, _len, _ref;
 
-      element.setCustomValidity("");
-      _ref = validationStringsFrom(element);
+      clearCustomErrorOn(element);
+      type = element.getAttribute("type");
+      _ref = this.constraints;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        ruleString = _ref[_i];
-        rule = ValidationRule.fromString(ruleString);
-        _ref1 = this.constraints;
-        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-          constraint = _ref1[_j];
-          if (constraint.canHandle(rule)) {
-            constraint.handle(element, rule);
-          }
-          if (!isValid(element)) {
-            break;
-          }
+        constraint = _ref[_i];
+        if (constraint.canHandle(type)) {
+          constraint.handle(element, type);
         }
         if (!isValid(element)) {
           break;
@@ -1116,20 +760,12 @@
       return isValid(element);
     };
 
-    validationStringsFrom = function(element) {
-      var ruleString, validationAttribute, _i, _len, _ref, _results;
+    clearCustomErrorOn = function(element) {
+      return markValidityAs(element, "");
+    };
 
-      validationAttribute = element.getAttribute("data-validation");
-      if (validationAttribute == null) {
-        return [];
-      }
-      _ref = validationAttribute.split(',');
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        ruleString = _ref[_i];
-        _results.push(ruleString.trim());
-      }
-      return _results;
+    markValidityAs = function(element, message) {
+      return element.setCustomValidity(message);
     };
 
     isValid = function(element) {
@@ -1156,39 +792,376 @@
 
 (function() {
   var modules = window.modules || [];
-  var validation_ruleCache = null;
-  var validation_ruleFunc = function() {
-    return (function() {
-  var ValidationRule;
+  var H5FCache = null;
+  var H5FFunc = function() {
+    /*! H5F
+* https://github.com/ryanseddon/H5F/
+* Copyright (c) Ryan Seddon | Licensed MIT */
 
-  ValidationRule = (function() {
-    function ValidationRule(type, context) {
-      this.type = type;
-      this.context = context != null ? context : null;
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define(factory);
+    } else {
+        // Browser globals
+        root.H5F = factory();
     }
+}(this, function () {
 
-    ValidationRule.fromString = function(ruleString) {
-      var context, ruleParts;
+    var d = document,
+        field = d.createElement("input"),
+        emailPatt = /^[a-zA-Z0-9.!#$%&'*+-\/=?\^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
+        urlPatt = /[a-z][\-\.+a-z]*:\/\//i,
+        nodes = /^(input|select|textarea)$/i,
+        isSubmit, bypassSubmit, usrPatt, curEvt, args,
+        // Methods
+        setup, validation, validity, checkField, bypassChecks, checkValidity, setCustomValidity, support, pattern, placeholder, range, required, valueMissing, listen, unlisten, preventActions, getTarget, addClass, removeClass, isHostMethod, isSiblingChecked;
+    
+    setup = function(form, settings) {
+        var isCollection = !form.nodeType || false;
+        
+        var opts = {
+            validClass : "valid",
+            invalidClass : "error",
+            requiredClass : "required",
+            placeholderClass : "placeholder"
+        };
 
-      ruleParts = ruleString.split('=');
-      context = ruleParts[1] != null ? ruleParts[1] : null;
-      return new this(ruleParts[0], context);
+        if(typeof settings === "object") {
+            for (var i in opts) {
+                if(typeof settings[i] === "undefined") { settings[i] = opts[i]; }
+            }
+        }
+        
+        args = settings || opts;
+        
+        if(isCollection) {
+            for(var k=0,len=form.length;k<len;k++) {
+                validation(form[k]);
+            }
+        } else {
+            validation(form);
+        }
+    };
+    
+    validation = function(form) {
+        var f = form.elements,
+            flen = f.length,
+            isRequired,
+            noValidate = !!(form.attributes["novalidate"]);
+        
+        listen(form,"invalid",checkField,true);
+        listen(form,"blur",checkField,true);
+        listen(form,"input",checkField,true);
+        listen(form,"keyup",checkField,true);
+        listen(form,"focus",checkField,true);
+        listen(form,"change",checkField,true);
+        listen(form,"click",bypassChecks,true);
+        
+        listen(form,"submit",function(e){
+            isSubmit = true;
+            if(!bypassSubmit) {
+                if(!noValidate && !form.checkValidity()) {
+                    preventActions(e);
+                }
+            }
+        },false);
+        
+        if(!support()) {
+            form.checkValidity = function() { return checkValidity(form); };
+            
+            while(flen--) {
+                isRequired = !!(f[flen].attributes["required"]);
+                // Firefox includes fieldsets inside elements nodelist so we filter it out.
+                if(f[flen].nodeName.toLowerCase() !== "fieldset") {
+                    validity(f[flen]); // Add validity object to field
+                }
+            }
+        }
+    };
+    validity = function(el) {
+        var elem = el,
+            missing = valueMissing(elem),
+            attrs = {
+                type: elem.getAttribute("type"),
+                pattern: elem.getAttribute("pattern"),
+                placeholder: elem.getAttribute("placeholder")
+            },
+            isType = /^(email|url)$/i,
+            evt = /^(input|keyup)$/i,
+            fType = ((isType.test(attrs.type)) ? attrs.type : ((attrs.pattern) ? attrs.pattern : false)),
+            patt = pattern(elem,fType),
+            step = range(elem,"step"),
+            min = range(elem,"min"),
+            max = range(elem,"max"),
+            customError = !( elem.validationMessage === "" || elem.validationMessage === undefined );
+        
+        elem.checkValidity = function() { return checkValidity.call(this,elem); };
+        elem.setCustomValidity = function(msg) { setCustomValidity.call(elem,msg); };
+        
+        elem.validity = {
+            valueMissing: missing,
+            patternMismatch: patt,
+            rangeUnderflow: min,
+            rangeOverflow: max,
+            stepMismatch: step,
+            customError: customError,
+            valid: (!missing && !patt && !step && !min && !max && !customError)
+        };
+        
+        if(attrs.placeholder && !evt.test(curEvt)) { placeholder(elem); }
+    };
+    checkField = function(e) {
+        var el = getTarget(e) || e, // checkValidity method passes element not event
+            events = /^(input|keyup|focusin|focus|change)$/i,
+            ignoredTypes = /^(submit|image|button|reset)$/i,
+            specialTypes = /^(checkbox|radio)$/i,
+            checkForm = true;
+        
+        if(nodes.test(el.nodeName) && !(ignoredTypes.test(el.type) || ignoredTypes.test(el.nodeName))) {
+            curEvt = e.type;
+
+            if(!support()) {
+                validity(el);
+            }
+
+            if(el.validity.valid && (el.value !== "" || specialTypes.test(el.type)) || (el.value !== el.getAttribute("placeholder") && el.validity.valid)) {
+                removeClass(el,[args.invalidClass,args.requiredClass]);
+                addClass(el,args.validClass);
+            } else if(!events.test(curEvt)) {
+                if(el.validity.valueMissing) {
+                    removeClass(el,[args.invalidClass,args.validClass]);
+                    addClass(el,args.requiredClass);
+                } else if(!el.validity.valid) {
+                    removeClass(el,[args.validClass,args.requiredClass]);
+                    addClass(el,args.invalidClass);
+                }
+            } else if(el.validity.valueMissing) {
+                removeClass(el,[args.requiredClass,args.invalidClass,args.validClass]);
+            }
+            if(curEvt === "input" && checkForm) {
+                // If input is triggered remove the keyup event
+                unlisten(el.form,"keyup",checkField,true);
+                checkForm = false;
+            }
+        }
+    };
+    checkValidity = function(el) {
+        var f, ff, isRequired, hasPattern, invalid = false;
+        
+        if(el.nodeName.toLowerCase() === "form") {
+            f = el.elements;
+            
+            for(var i = 0,len = f.length;i < len;i++) {
+                ff = f[i];
+                
+                isRequired = !!(ff.attributes["required"]);
+                hasPattern = !!(ff.attributes["pattern"]);
+                
+                if(ff.nodeName.toLowerCase() !== "fieldset" && (isRequired || hasPattern && isRequired)) {
+                    checkField(ff);
+                    if(!ff.validity.valid && !invalid) {
+                        if(isSubmit) { // If it's not a submit event the field shouldn't be focused
+                            ff.focus();
+                        }
+                        invalid = true;
+                    }
+                }
+            }
+            return !invalid;
+        } else {
+            checkField(el);
+            return el.validity.valid;
+        }
+    };
+    setCustomValidity = function(msg) {
+        var el = this;
+            
+        el.validationMessage = msg;
+    };
+    
+    bypassChecks = function(e) {
+        // handle formnovalidate attribute
+        var el = getTarget(e);
+
+        if(el.attributes["formnovalidate"] && el.type === "submit") {
+            bypassSubmit = true;
+        }
     };
 
-    return ValidationRule;
+    support = function() {
+        return (isHostMethod(field,"validity") && isHostMethod(field,"checkValidity"));
+    };
 
-  })();
+    // Create helper methods to emulate attributes in older browsers
+    pattern = function(el, type) {
+        if(type === "email") {
+            return !emailPatt.test(el.value);
+        } else if(type === "url") {
+            return !urlPatt.test(el.value);
+        } else if(!type) {
+            return false;
+        } else {
+            var placeholder = el.getAttribute("placeholder"),
+                val = el.value;
+            
+            usrPatt = new RegExp('^(?:' + type + ')$');
+            
+            if(val === placeholder) {
+                return false;
+            } else if(val === "") {
+                return false;
+            } else {
+                return !usrPatt.test(el.value);
+            }
+        }
+    };
+    placeholder = function(el) {
+        var attrs = { placeholder: el.getAttribute("placeholder") },
+            focus = /^(focus|focusin|submit)$/i,
+            node = /^(input|textarea)$/i,
+            ignoredType = /^password$/i,
+            isNative = !!("placeholder" in field);
+        
+        if(!isNative && node.test(el.nodeName) && !ignoredType.test(el.type)) {
+            if(el.value === "" && !focus.test(curEvt)) {
+                el.value = attrs.placeholder;
+                listen(el.form,'submit', function () {
+                  curEvt = 'submit';
+                  placeholder(el);
+                }, true);
+                addClass(el,args.placeholderClass);
+            } else if(el.value === attrs.placeholder && focus.test(curEvt)) {
+                el.value = "";
+                removeClass(el,args.placeholderClass);
+            }
+        }
+    };
+    range = function(el, type) {
+        // Emulate min, max and step
+        var min = parseInt(el.getAttribute("min"),10) || 0,
+            max = parseInt(el.getAttribute("max"),10) || false,
+            step = parseInt(el.getAttribute("step"),10) || 1,
+            val = parseInt(el.value,10),
+            mismatch = (val-min)%step;
+        
+        if(!valueMissing(el) && !isNaN(val)) {
+            if(type === "step") {
+                return (el.getAttribute("step")) ? (mismatch !== 0) : false;
+            } else if(type === "min") {
+                return (el.getAttribute("min")) ? (val < min) : false;
+            } else if(type === "max") {
+                return (el.getAttribute("max")) ? (val > max) : false;
+            }
+        } else if(el.getAttribute("type") === "number") {
+            return true;
+        } else {
+            return false;
+        }
+    };
+    required = function(el) {
+        var required = !!(el.attributes["required"]);
+        
+        return (required) ? valueMissing(el) : false;
+    };
+    valueMissing = function(el) {
+        var placeholder = el.getAttribute("placeholder"),
+            specialTypes = /^(checkbox|radio)$/i,
+            isRequired = !!(el.attributes["required"]);
+        return !!(isRequired && (el.value === "" || el.value === placeholder || (specialTypes.test(el.type) && !isSiblingChecked(el))));
+    };
+    
+    /* Util methods */
+    listen = function (node,type,fn,capture) {
+        if(isHostMethod(window,"addEventListener")) {
+            /* FF & Other Browsers */
+            node.addEventListener( type, fn, capture );
+        } else if(isHostMethod(window,"attachEvent") && typeof window.event !== "undefined") {
+            /* Internet Explorer way */
+            if(type === "blur") {
+                type = "focusout";
+            } else if(type === "focus") {
+                type = "focusin";
+            }
+            node.attachEvent( "on" + type, fn );
+        }
+    };
+    unlisten = function (node,type,fn,capture) {
+        if(isHostMethod(window,"removeEventListener")) {
+            /* FF & Other Browsers */
+            node.removeEventListener( type, fn, capture );
+        } else if(isHostMethod(window,"detachEvent") && typeof window.event !== "undefined") {
+            /* Internet Explorer way */
+            node.detachEvent( "on" + type, fn );
+        }
+    };
+    preventActions = function (evt) {
+        evt = evt || window.event;
+        
+        if(evt.stopPropagation && evt.preventDefault) {
+            evt.stopPropagation();
+            evt.preventDefault();
+        } else {
+            evt.cancelBubble = true;
+            evt.returnValue = false;
+        }
+    };
+    getTarget = function (evt) {
+        evt = evt || window.event;
+        return evt.target || evt.srcElement;
+    };
+    addClass = function (e,c) {
+        var re;
+        if (!e.className) {
+            e.className = c;
+        }
+        else {
+            re = new RegExp('(^|\\s)' + c + '(\\s|$)');
+            if (!re.test(e.className)) { e.className += ' ' + c; }
+        }
+    };
+    removeClass = function (e,c) {
+        var re, m, arr = (typeof c === "object") ? c.length : 1, len = arr;
+        if (e.className) {
+            if (e.className === c) {
+                e.className = '';
+            } else {
+                while(arr--) {
+                    re = new RegExp('(^|\\s)' + ((len > 1) ? c[arr] : c) + '(\\s|$)');
+                    m = e.className.match(re);
+                    if (m && m.length === 3) { e.className = e.className.replace(re, (m[1] && m[2])?' ':''); }
+                }
+            }
+        }
+    };
+    isHostMethod = function(o, m) {
+        var t = typeof o[m], reFeaturedMethod = new RegExp('^function|object$', 'i');
+        return !!((reFeaturedMethod.test(t) && o[m]) || t === 'unknown');
+    };
+    /* Checking if one of the radio siblings is checked */
+    isSiblingChecked = function(el) {
+        var siblings = document.getElementsByName(el.name);
+        for(var i=0; i<siblings.length; i++){
+            if(siblings[i].checked){
+                return true;
+            }
+        }
+        return false;
+    };
 
-  return ValidationRule;
+    // Since all methods are only used internally no need to expose globally
+    return {
+        setup: setup
+    };
 
-}).call(this);
+}));
 
   };
-  modules.hoarder__validator__rules__validation_rule = function() {
-    if (validation_ruleCache === null) {
-      validation_ruleCache = validation_ruleFunc();
+  modules.lib__H5F = function() {
+    if (H5FCache === null) {
+      H5FCache = H5FFunc();
     }
-    return validation_ruleCache;
+    return H5FCache;
   };
   window.modules = modules;
 })();
