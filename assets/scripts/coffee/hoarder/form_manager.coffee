@@ -32,6 +32,8 @@ class FormManager
 		delete @_listeners[formId]
 		@_forms.splice @_forms.indexOf(form), 1
 
+	# private
+
 	getForm = (formId)-> 
 		for form in @_forms 
 			return form if form.formElement.id is formId

@@ -20,7 +20,7 @@ describe "FormManager", ->
 		submitErrorHappened: (form, errorMessage)->
 
 	beforeEach ->
-		createTestFormFixture()
+		createCreditCardFormFixture()
 
 		submitter = FormSubmitter.create('/polling-url', 500)
 		validator = FormValidator.create()
@@ -57,7 +57,7 @@ describe "FormManager", ->
 			describe "and all or part of the form is invalid", ->
 
 				beforeEach ->
-					document.getElementById('city').value = 5
+					document.getElementById('card-number').value = '12345'
 					document.getElementById('submit').click()
 
 				it "will call callbacks added to the validatedWithErrors signal", ->
@@ -98,7 +98,7 @@ describe "FormManager", ->
 			expect(-> manager.manage 'test-form').not.toThrow()
 
 		it "will no longer call the validation callbacks", ->
-			document.getElementById('city').value = 5
+			document.getElementById('card-number').value = '12345'
 			document.getElementById('submit').click()
 			expect(callbacks.validateErrorHappened).not.toHaveBeenCalled()
 

@@ -616,94 +616,6 @@
 
 (function() {
   var modules = window.modules || [];
-  var alpha_constraintCache = null;
-  var alpha_constraintFunc = function() {
-    return (function() {
-  var AlphaConstraint, BaseConstraint,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  BaseConstraint = require('hoarder/validator/constraints/base_constraint');
-
-  AlphaConstraint = (function(_super) {
-    __extends(AlphaConstraint, _super);
-
-    function AlphaConstraint() {
-      this.type = "alpha";
-    }
-
-    AlphaConstraint.prototype.rulePasses = function(element) {
-      return element.value.match(/^[A-Za-z\s]*$/);
-    };
-
-    AlphaConstraint.prototype.errorMessage = function() {
-      return "This field only accepts characters (A-Z, a-z).";
-    };
-
-    return AlphaConstraint;
-
-  })(BaseConstraint);
-
-  return AlphaConstraint;
-
-}).call(this);
-
-  };
-  modules.hoarder__validator__constraints__alpha_constraint = function() {
-    if (alpha_constraintCache === null) {
-      alpha_constraintCache = alpha_constraintFunc();
-    }
-    return alpha_constraintCache;
-  };
-  window.modules = modules;
-})();
-
-(function() {
-  var modules = window.modules || [];
-  var alphanumeric_constraintCache = null;
-  var alphanumeric_constraintFunc = function() {
-    return (function() {
-  var AlphanumericConstraint, BaseConstraint,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  BaseConstraint = require('hoarder/validator/constraints/base_constraint');
-
-  AlphanumericConstraint = (function(_super) {
-    __extends(AlphanumericConstraint, _super);
-
-    function AlphanumericConstraint() {
-      this.type = "alphanumeric";
-    }
-
-    AlphanumericConstraint.prototype.rulePasses = function(element) {
-      return element.value.match(/^[A-Za-z0-9\s]*$/);
-    };
-
-    AlphanumericConstraint.prototype.errorMessage = function() {
-      return "This field only accepts numbers and characters (0-9, A-Z, a-z).";
-    };
-
-    return AlphanumericConstraint;
-
-  })(BaseConstraint);
-
-  return AlphanumericConstraint;
-
-}).call(this);
-
-  };
-  modules.hoarder__validator__constraints__alphanumeric_constraint = function() {
-    if (alphanumeric_constraintCache === null) {
-      alphanumeric_constraintCache = alphanumeric_constraintFunc();
-    }
-    return alphanumeric_constraintCache;
-  };
-  window.modules = modules;
-})();
-
-(function() {
-  var modules = window.modules || [];
   var base_constraintCache = null;
   var base_constraintFunc = function() {
     return (function() {
@@ -714,13 +626,13 @@
       this.type = null;
     }
 
-    BaseConstraint.prototype.canHandle = function(rule) {
-      return rule.type === this.type;
+    BaseConstraint.prototype.canHandle = function(type) {
+      return type === this.type;
     };
 
-    BaseConstraint.prototype.handle = function(element, rule) {
-      if (!this.rulePasses(element, rule)) {
-        return element.setCustomValidity(this.errorMessage(rule, element));
+    BaseConstraint.prototype.handle = function(element, type) {
+      if (!this.rulePasses(element)) {
+        return element.setCustomValidity(this.errorMessage(element));
       }
     };
 
@@ -757,7 +669,7 @@
     __extends(CreditCardConstraint, _super);
 
     function CreditCardConstraint() {
-      this.type = "creditCard";
+      this.type = "credit-card";
     }
 
     CreditCardConstraint.prototype.rulePasses = function(element) {
@@ -788,299 +700,17 @@
 
 (function() {
   var modules = window.modules || [];
-  var email_constraintCache = null;
-  var email_constraintFunc = function() {
-    return (function() {
-  var BaseConstraint, EmailConstraint,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  BaseConstraint = require('hoarder/validator/constraints/base_constraint');
-
-  EmailConstraint = (function(_super) {
-    __extends(EmailConstraint, _super);
-
-    function EmailConstraint() {
-      this.type = "email";
-    }
-
-    EmailConstraint.prototype.rulePasses = function(element) {
-      return element.value.match(/^([a-zA-Z0-9_-]+)@([a-zA-Z0-9.-]+)\.([a-zA-Z]{2,4})$/i);
-    };
-
-    EmailConstraint.prototype.errorMessage = function() {
-      return "Please enter a valid email address.";
-    };
-
-    return EmailConstraint;
-
-  })(BaseConstraint);
-
-  return EmailConstraint;
-
-}).call(this);
-
-  };
-  modules.hoarder__validator__constraints__email_constraint = function() {
-    if (email_constraintCache === null) {
-      email_constraintCache = email_constraintFunc();
-    }
-    return email_constraintCache;
-  };
-  window.modules = modules;
-})();
-
-(function() {
-  var modules = window.modules || [];
-  var max_length_constraintCache = null;
-  var max_length_constraintFunc = function() {
-    return (function() {
-  var BaseConstraint, MaxLengthConstraint,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  BaseConstraint = require("hoarder/validator/constraints/base_constraint");
-
-  MaxLengthConstraint = (function(_super) {
-    __extends(MaxLengthConstraint, _super);
-
-    function MaxLengthConstraint() {
-      this.type = "maxLength";
-    }
-
-    MaxLengthConstraint.prototype.rulePasses = function(element, rule) {
-      return element.value.length <= rule.context;
-    };
-
-    MaxLengthConstraint.prototype.errorMessage = function(rule) {
-      return "The maximum length of this field is " + rule.context + ".";
-    };
-
-    return MaxLengthConstraint;
-
-  })(BaseConstraint);
-
-  return MaxLengthConstraint;
-
-}).call(this);
-
-  };
-  modules.hoarder__validator__constraints__max_length_constraint = function() {
-    if (max_length_constraintCache === null) {
-      max_length_constraintCache = max_length_constraintFunc();
-    }
-    return max_length_constraintCache;
-  };
-  window.modules = modules;
-})();
-
-(function() {
-  var modules = window.modules || [];
-  var min_length_constraintCache = null;
-  var min_length_constraintFunc = function() {
-    return (function() {
-  var BaseConstraint, MinLengthConstraint,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  BaseConstraint = require("hoarder/validator/constraints/base_constraint");
-
-  MinLengthConstraint = (function(_super) {
-    __extends(MinLengthConstraint, _super);
-
-    function MinLengthConstraint() {
-      this.type = "minLength";
-    }
-
-    MinLengthConstraint.prototype.rulePasses = function(element, rule) {
-      return element.value.length >= rule.context;
-    };
-
-    MinLengthConstraint.prototype.errorMessage = function(rule) {
-      return "The minimum length of this field is " + rule.context + ".";
-    };
-
-    return MinLengthConstraint;
-
-  })(BaseConstraint);
-
-  return MinLengthConstraint;
-
-}).call(this);
-
-  };
-  modules.hoarder__validator__constraints__min_length_constraint = function() {
-    if (min_length_constraintCache === null) {
-      min_length_constraintCache = min_length_constraintFunc();
-    }
-    return min_length_constraintCache;
-  };
-  window.modules = modules;
-})();
-
-(function() {
-  var modules = window.modules || [];
-  var numeric_constraintCache = null;
-  var numeric_constraintFunc = function() {
-    return (function() {
-  var BaseConstraint, NumericConstraint,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  BaseConstraint = require("hoarder/validator/constraints/base_constraint");
-
-  NumericConstraint = (function(_super) {
-    __extends(NumericConstraint, _super);
-
-    function NumericConstraint() {
-      this.type = "numeric";
-    }
-
-    NumericConstraint.prototype.rulePasses = function(element) {
-      return element.value.match(/^[0-9]*$/);
-    };
-
-    NumericConstraint.prototype.errorMessage = function() {
-      return "This field only accepts numbers (0-9).";
-    };
-
-    return NumericConstraint;
-
-  })(BaseConstraint);
-
-  return NumericConstraint;
-
-}).call(this);
-
-  };
-  modules.hoarder__validator__constraints__numeric_constraint = function() {
-    if (numeric_constraintCache === null) {
-      numeric_constraintCache = numeric_constraintFunc();
-    }
-    return numeric_constraintCache;
-  };
-  window.modules = modules;
-})();
-
-(function() {
-  var modules = window.modules || [];
-  var phone_constraintCache = null;
-  var phone_constraintFunc = function() {
-    return (function() {
-  var BaseConstraint, PhoneConstraint,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  BaseConstraint = require('hoarder/validator/constraints/base_constraint');
-
-  PhoneConstraint = (function(_super) {
-    __extends(PhoneConstraint, _super);
-
-    function PhoneConstraint() {
-      this.type = "phone";
-    }
-
-    PhoneConstraint.prototype.rulePasses = function(element) {
-      return element.value.match(/^\d?[.(\-]?\d\d\d[.)\-]?\d\d\d[.\-]?\d\d\d\d$/);
-    };
-
-    PhoneConstraint.prototype.errorMessage = function() {
-      return "Please enter a valid phone number.";
-    };
-
-    return PhoneConstraint;
-
-  })(BaseConstraint);
-
-  return PhoneConstraint;
-
-}).call(this);
-
-  };
-  modules.hoarder__validator__constraints__phone_constraint = function() {
-    if (phone_constraintCache === null) {
-      phone_constraintCache = phone_constraintFunc();
-    }
-    return phone_constraintCache;
-  };
-  window.modules = modules;
-})();
-
-(function() {
-  var modules = window.modules || [];
-  var required_constraintCache = null;
-  var required_constraintFunc = function() {
-    return (function() {
-  var BaseConstraint, RequiredConstraint,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  BaseConstraint = require('hoarder/validator/constraints/base_constraint');
-
-  RequiredConstraint = (function(_super) {
-    __extends(RequiredConstraint, _super);
-
-    function RequiredConstraint() {
-      this.type = "required";
-    }
-
-    RequiredConstraint.prototype.rulePasses = function(element) {
-      return (element.value != null) && element.value !== "";
-    };
-
-    RequiredConstraint.prototype.errorMessage = function() {
-      return "This field is required.";
-    };
-
-    return RequiredConstraint;
-
-  })(BaseConstraint);
-
-  return RequiredConstraint;
-
-}).call(this);
-
-  };
-  modules.hoarder__validator__constraints__required_constraint = function() {
-    if (required_constraintCache === null) {
-      required_constraintCache = required_constraintFunc();
-    }
-    return required_constraintCache;
-  };
-  window.modules = modules;
-})();
-
-(function() {
-  var modules = window.modules || [];
   var form_validatorCache = null;
   var form_validatorFunc = function() {
     return (function() {
-  var AlphaConstraint, AlphanumericConstraint, CreditCardConstraint, EmailConstraint, FormValidator, MaxLengthConstraint, MinLengthConstraint, NumericConstraint, PhoneConstraint, RequiredConstraint, ValidationRule;
-
-  ValidationRule = require('hoarder/validator/rules/validation_rule');
-
-  AlphaConstraint = require("hoarder/validator/constraints/alpha_constraint");
-
-  AlphanumericConstraint = require("hoarder/validator/constraints/alphanumeric_constraint");
+  var CreditCardConstraint, FormValidator;
 
   CreditCardConstraint = require("hoarder/validator/constraints/credit_card_constraint");
 
-  EmailConstraint = require("hoarder/validator/constraints/email_constraint");
-
-  MaxLengthConstraint = require("hoarder/validator/constraints/max_length_constraint");
-
-  MinLengthConstraint = require("hoarder/validator/constraints/min_length_constraint");
-
-  NumericConstraint = require("hoarder/validator/constraints/numeric_constraint");
-
-  PhoneConstraint = require("hoarder/validator/constraints/phone_constraint");
-
-  RequiredConstraint = require("hoarder/validator/constraints/required_constraint");
-
   FormValidator = (function() {
-    var isValid, validationStringsFrom;
+    var clearValidationErrorsOn, isValid, markValidityAs;
 
-    FormValidator.libraryConstraints = [new AlphaConstraint(), new AlphanumericConstraint(), new CreditCardConstraint(), new EmailConstraint(), new MaxLengthConstraint(), new MinLengthConstraint(), new NumericConstraint(), new PhoneConstraint(), new RequiredConstraint()];
+    FormValidator.libraryConstraints = [new CreditCardConstraint()];
 
     FormValidator.create = function() {
       return new this(FormValidator.libraryConstraints);
@@ -1102,22 +732,15 @@
     };
 
     FormValidator.prototype.validateElement = function(element) {
-      var constraint, rule, ruleString, _i, _j, _len, _len1, _ref, _ref1;
+      var constraint, type, _i, _len, _ref;
 
-      element.setCustomValidity("");
-      _ref = validationStringsFrom(element);
+      clearValidationErrorsOn(element);
+      type = element.getAttribute("type");
+      _ref = this.constraints;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        ruleString = _ref[_i];
-        rule = ValidationRule.fromString(ruleString);
-        _ref1 = this.constraints;
-        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-          constraint = _ref1[_j];
-          if (constraint.canHandle(rule)) {
-            constraint.handle(element, rule);
-          }
-          if (!isValid(element)) {
-            break;
-          }
+        constraint = _ref[_i];
+        if (constraint.canHandle(type)) {
+          constraint.handle(element, type);
         }
         if (!isValid(element)) {
           break;
@@ -1126,20 +749,12 @@
       return isValid(element);
     };
 
-    validationStringsFrom = function(element) {
-      var ruleString, validationAttribute, _i, _len, _ref, _results;
+    clearValidationErrorsOn = function(element) {
+      return markValidityAs(element, "");
+    };
 
-      validationAttribute = element.getAttribute("data-validation");
-      if (validationAttribute == null) {
-        return [];
-      }
-      _ref = validationAttribute.split(',');
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        ruleString = _ref[_i];
-        _results.push(ruleString.trim());
-      }
-      return _results;
+    markValidityAs = function(element, message) {
+      return element.setCustomValidity(message);
     };
 
     isValid = function(element) {
@@ -1160,45 +775,6 @@
       form_validatorCache = form_validatorFunc();
     }
     return form_validatorCache;
-  };
-  window.modules = modules;
-})();
-
-(function() {
-  var modules = window.modules || [];
-  var validation_ruleCache = null;
-  var validation_ruleFunc = function() {
-    return (function() {
-  var ValidationRule;
-
-  ValidationRule = (function() {
-    function ValidationRule(type, context) {
-      this.type = type;
-      this.context = context != null ? context : null;
-    }
-
-    ValidationRule.fromString = function(ruleString) {
-      var context, ruleParts;
-
-      ruleParts = ruleString.split('=');
-      context = ruleParts[1] != null ? ruleParts[1] : null;
-      return new this(ruleParts[0], context);
-    };
-
-    return ValidationRule;
-
-  })();
-
-  return ValidationRule;
-
-}).call(this);
-
-  };
-  modules.hoarder__validator__rules__validation_rule = function() {
-    if (validation_ruleCache === null) {
-      validation_ruleCache = validation_ruleFunc();
-    }
-    return validation_ruleCache;
   };
   window.modules = modules;
 })();
