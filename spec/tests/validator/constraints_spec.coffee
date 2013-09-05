@@ -13,7 +13,7 @@ describe "Validator Constraints", ->
 
 	it "can require that a value be a valid credit card number", ->
 		constraint = new CreditCardConstraint()
-		validElement.type = invalidElement.type = 'credit-card'
+		validElement.type = invalidElement.type = 'creditcard'
 		validElement.value = "4111111111111111"
 		invalidElement.value = "12345"
 		constraint.handle(validElement)

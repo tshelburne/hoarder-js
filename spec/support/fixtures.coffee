@@ -3,7 +3,7 @@ createCreditCardFormFixture = ->
 
   formFixture.affix 'input#name[type="text"][name="name"][value="John Doe"]'
   document.getElementById('name').pattern = "[A-Za-z\\s]+"
-  formFixture.affix 'input#card-number[type="credit-card"][name="card-number"][value="4111111111111111"]'
+  formFixture.affix 'input#card-number[type="creditcard"][name="card-number"][value="4111111111111111"]'
   formFixture.affix 'input#exp-month[type="text"][name="exp-month"][value="01"]'
   formFixture.affix 'input#exp-year[type="text"][name="exp-year"][value="13"]'
   formFixture.affix 'input#billing-zip[type="text"][name="billing-zip"][value="78751"]'

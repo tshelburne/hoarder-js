@@ -669,7 +669,7 @@
     __extends(CreditCardConstraint, _super);
 
     function CreditCardConstraint() {
-      this.type = "credit-card";
+      this.type = "creditcard";
     }
 
     CreditCardConstraint.prototype.rulePasses = function(element) {
