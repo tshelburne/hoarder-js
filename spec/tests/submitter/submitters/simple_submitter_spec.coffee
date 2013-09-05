@@ -17,7 +17,7 @@ describe "SimpleSubmitter", ->
 		errorHappened: (form, errorMessage)->
 
 	beforeEach ->
-		createTestFormFixture()
+		createAddressFormFixture()
 
 		form = new Form(document.getElementById('test-form'))
 		submitter = new SimpleSubmitter()
