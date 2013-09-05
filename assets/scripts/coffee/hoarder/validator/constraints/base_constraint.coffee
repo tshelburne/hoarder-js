@@ -3,8 +3,8 @@ class BaseConstraint
 	constructor: ->
 		@type = null
 
-	canHandle: (rule)-> rule.type is @type
+	canHandle: (type)-> type is @type
 
-	handle: (element, rule)-> element.setCustomValidity @errorMessage(rule, element) unless @rulePasses element, rule
+	handle: (element, type)-> element.setCustomValidity @errorMessage(element) unless @rulePasses element
 
 return BaseConstraint
