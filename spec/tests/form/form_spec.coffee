@@ -14,7 +14,7 @@ describe "Form", ->
 	singleElementValue = elements[0].value
 
 	beforeEach ->
-		createTestFormFixture()
+		createAddressFormFixture()
 
 		shippingForm   = document.getElementById("test-form")
 		addressElement = shippingForm['address']
