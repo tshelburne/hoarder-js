@@ -1,4 +1,5 @@
 require 'patches/event_listeners'
+require 'lib/H5F'
 
 Signal = require "cronus/signal"
 SignalRelay = require "cronus/signal_relay"
@@ -21,11 +22,7 @@ class FormManager
 
 	manage: (formId, type='simple')-> 
 		throw new Error "'#{formId}' is already a managed form." if getForm.call(@, formId)?
-		formElement = document.getElementById formId
-		form = new Form(formElement)
-		formElement.addEventListener 'submit', @_listeners[formId] = (event)=>
-			event.preventDefault()
-			submit.call @, form, type
+		form = setupHoarderForm.call @, formId, type
 		@_forms.push form
 		form
 
@@ -44,5 +41,14 @@ class FormManager
 			@formSubmitter.submit form, type
 		else 
 			@validatedWithErrors.dispatch form
+
+	setupHoarderForm = (formId, type)->
+		formElement = document.getElementById formId
+		H5F.setup formElement # make sure our form is HTML5 compliant
+		form = new Form(formElement)
+		formElement.addEventListener 'submit', @_listeners[formId] = (event)=>
+			event.preventDefault()
+			submit.call @, form, type
+		form
 
 return FormManager
