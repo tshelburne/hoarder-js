@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = "hoarder-js"
-  s.version = "0.0.4"
+  s.version = "0.0.5"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tim Shelburne"]
-  s.date = "2013-09-05"
+  s.date = "2013-09-06"
   s.description = ""
   s.email = "shelburt02@gmail.com"
   s.executables = ["hoarder.min.js", "hoarder.min.js.gz"]
@@ -18,7 +18,6 @@ Gem::Specification.new do |s|
   s.rubyforge_project = "hoarder-js"
   s.rubygems_version = "1.8.24"
   s.summary = ""
-  s.license = "MIT"
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
