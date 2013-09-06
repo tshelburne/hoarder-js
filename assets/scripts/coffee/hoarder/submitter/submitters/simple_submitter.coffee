@@ -11,6 +11,7 @@ class SimpleSubmitter extends BaseSubmitter
   submit: (form)->
     reqwest(
       url: form.action()
+      type: 'json'
       method: form.method()
       data: form.serialize()
       success: (data)=> @submittedWithSuccess.dispatch(form, data)

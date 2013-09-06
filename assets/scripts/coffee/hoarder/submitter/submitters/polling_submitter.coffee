@@ -11,6 +11,7 @@ class PollingSubmitter extends BaseSubmitter
   submit: (form)->
     reqwest(
       url: form.action()
+      type: 'json'
       method: form.method()
       data: form.serialize()
       success: (data)=> @poll(form, data.processId)
@@ -20,6 +21,7 @@ class PollingSubmitter extends BaseSubmitter
   poll: (form, processId)=>  
     reqwest(
       url: @pollUrl
+      type: 'json'
       method: "POST"
       data: "processId=#{processId}"
       success: (data)=> pollSuccess.call @, form, processId, data
