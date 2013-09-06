@@ -549,7 +549,7 @@
         return this.submittedWithSuccess.dispatch(form, data.processData);
       } else {
         return setTimeout(function() {
-          return _this.poll(form, data.processId);
+          return _this.poll(form, processId);
         }, this.pollFrequency);
       }
     };
