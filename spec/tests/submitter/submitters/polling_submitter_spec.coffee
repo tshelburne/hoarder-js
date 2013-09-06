@@ -51,11 +51,11 @@ describe "PollingSubmitter", ->
 
 		beforeEach ->
 			spyOn(submitter, "poll").andCallThrough()
-
-		it "will poll with the given frequency", ->
 			reqwestResponse = mocks.pollingProcessNotCompletedResponse
 			jasmine.Clock.useMock()
 			submitter.poll(form, "1234")
+
+		it "will poll with the given frequency", ->
 			expect(submitter.poll.calls.length).toEqual 1
 			jasmine.Clock.tick 501
 			expect(submitter.poll.calls.length).toEqual 2
@@ -66,34 +66,30 @@ describe "PollingSubmitter", ->
 
 			describe "and the process has completed", ->
 
-				it "will stop polling", ->
-					reqwestResponse = mocks.pollingProcessNotCompletedResponse
-					jasmine.Clock.useMock()
-					submitter.poll(form, "1234")
-					expect(submitter.poll.calls.length).toEqual 1
+				beforeEach ->
 					reqwestResponse = mocks.pollingProcessCompletedResponse
 					jasmine.Clock.tick 501
+
+				it "will stop polling", ->
 					expect(submitter.poll.calls.length).toEqual 2
 					jasmine.Clock.tick 501
 					expect(submitter.poll.calls.length).toEqual 2
 
 				it "will call callbacks added to the submittedWithSuccess signal", ->
-					reqwestResponse = mocks.pollingProcessCompletedResponse
-					submitter.poll(form, "1234")
 					expect(callbacks.successHappened).toHaveBeenCalledWith(form, successResponse().processData)
 
 			describe "and the process has not yet completed", ->
 
-				it "will initiate another poll", ->
-					reqwestResponse = mocks.pollingProcessNotCompletedResponse
-					jasmine.Clock.useMock()
-					submitter.poll(form, "1234")
+				beforeEach ->
 					jasmine.Clock.tick 501
+
+				it "will initiate another poll", ->
 					expect(submitter.poll.calls.length).toBeGreaterThan 1
+
+				it "will continue to use the same process id", ->
+					expect(submitter.poll.mostRecentCall.args[1]).toEqual '1234'
 				
 				it "will not call callbacks added to the submittedWithSuccess signal", ->
-					reqwestResponse = mocks.pollingProcessNotCompletedResponse
-					submitter.poll(form, "1234")
 					expect(callbacks.successHappened).not.toHaveBeenCalled()
 
 		describe "when an error occurs in the polling", ->

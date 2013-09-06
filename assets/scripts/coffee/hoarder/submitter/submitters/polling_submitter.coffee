@@ -35,7 +35,7 @@ class PollingSubmitter extends BaseSubmitter
       @submittedWithSuccess.dispatch(form, data.processData)
     else
       setTimeout( =>
-        @poll(form, data.processId)
+        @poll(form, processId)
       , @pollFrequency)
 
 return PollingSubmitter
