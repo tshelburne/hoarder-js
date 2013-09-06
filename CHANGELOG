@@ -1,3 +1,5 @@
+v0.0.6 fixed polling submitter bug where process ids weren't being passed to secondary poll attempts
+
 v0.0.5 fixed submitter bug in reqwest calls to expect json in response to the request
 
 v0.0.4 rewrote validation portion of the library to use HTML5 validation where possible, with the H5F polyfill as a wrapper for compatibility
