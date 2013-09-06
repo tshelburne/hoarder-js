@@ -513,6 +513,7 @@
 
       return reqwest({
         url: form.action(),
+        type: 'json',
         method: form.method(),
         data: form.serialize(),
         success: function(data) {
@@ -529,6 +530,7 @@
 
       return reqwest({
         url: this.pollUrl,
+        type: 'json',
         method: "POST",
         data: "processId=" + processId,
         success: function(data) {
@@ -596,6 +598,7 @@
 
       return reqwest({
         url: form.action(),
+        type: 'json',
         method: form.method(),
         data: form.serialize(),
         success: function(data) {
