@@ -14,6 +14,7 @@
     function Form(formElement) {
       this.formElement = formElement;
       this.addedElements = [];
+      this.permanentElements = [];
     }
 
     Form.prototype.elements = function() {
@@ -40,26 +41,36 @@
       return this.formElement.checkValidity();
     };
 
-    Form.prototype.addElement = function(name, value) {
+    Form.prototype.addElement = function(name, value, isPermanent) {
       var element;
 
+      if (isPermanent == null) {
+        isPermanent = false;
+      }
       if (this.hasElement(name)) {
         throw new Error("'" + name + "' already exists as an element on the form.");
       }
       element = createElement(name, value);
       this.formElement.appendChild(element);
-      this.addedElements.push(element);
+      if (isPermanent) {
+        this.permanentElements.push(element);
+      } else {
+        this.addedElements.push(element);
+      }
       return element;
     };
 
-    Form.prototype.addElements = function(elements) {
+    Form.prototype.addElements = function(elements, arePermanent) {
       var e, element, errors, _i, _len;
 
+      if (arePermanent == null) {
+        arePermanent = false;
+      }
       errors = [];
       for (_i = 0, _len = elements.length; _i < _len; _i++) {
         element = elements[_i];
         try {
-          this.addElement(element.name, element.value);
+          this.addElement(element.name, element.value, arePermanent);
         } catch (_error) {
           e = _error;
           errors.push(e);

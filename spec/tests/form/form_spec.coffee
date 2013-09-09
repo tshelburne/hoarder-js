@@ -73,6 +73,13 @@ describe "Form", ->
 			form.addElement(singleElementName, singleElementValue)
 			expect(-> form.addElement(singleElementName, 'Jane Doe')).toThrow()
 
+		describe "when the element is marked as permanent", ->
+
+			it "will not be removed by clearAddedElements", ->
+				element = form.addElement(singleElementName, singleElementValue, true)
+				form.clearAddedElements()
+				expect(form.elements()).toContain element
+
 	describe '#addElements', ->
 
 		it "will add a series of elements to the list of elements", ->
@@ -89,6 +96,13 @@ describe "Form", ->
 			it "will throw errors", ->
 				form.addElement(singleElementName, singleElementValue)
 				expect(-> form.addElements(elements)).toThrow()
+
+		describe "when the elements are marked as permanent", ->
+
+			it "will not remove them with clearAddedElements", ->
+				form.addElements(elements, true)
+				form.clearAddedElements()
+				expect(form.getElement(element.name)).not.toBeNull() for element in elements
 
 	describe '#hasElement', ->
 
