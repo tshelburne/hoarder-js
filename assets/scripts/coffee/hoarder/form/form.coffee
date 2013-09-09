@@ -3,7 +3,8 @@ FormSerializer = require 'hoarder/form/form_serializer'
 class Form
 
 	constructor: (@formElement)->
-		@addedElements = [ ]
+		@addedElements = []
+		@permanentElements = []
 
 	elements: -> (@formElement[index] for index in [0..@formElement.length] when @formElement[index]?.nodeName in [ 'INPUT', 'SELECT', 'TEXTAREA' ])
 
@@ -13,17 +14,17 @@ class Form
 
 	isValid: -> @formElement.checkValidity()
 
-	addElement: (name, value)->
+	addElement: (name, value, isPermanent=false)->
 		throw new Error "'#{name}' already exists as an element on the form." if @hasElement name
 		element = createElement name, value
 		@formElement.appendChild element
-		@addedElements.push element
+		if isPermanent then @permanentElements.push element else @addedElements.push element
 		element
 
-	addElements: (elements)->
+	addElements: (elements, arePermanent=false)->
 		errors = [ ]
 		for element in elements
-			try @addElement(element.name, element.value) 
+			try @addElement(element.name, element.value, arePermanent) 
 			catch e 
 				errors.push e
 		throw errors[0] if errors.length
