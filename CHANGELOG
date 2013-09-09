@@ -1,3 +1,5 @@
+v0.0.7 added permanent elements to forms, which aren't removable by clearAddedElements
+
 v0.0.6 fixed polling submitter bug where process ids weren't being passed to secondary poll attempts
 
 v0.0.5 fixed submitter bug in reqwest calls to expect json in response to the request
