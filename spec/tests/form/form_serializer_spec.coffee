@@ -7,6 +7,7 @@ describe 'FormSerializer', ->
 		form = affix 'form#serializable-form'
 
 		form.affix 'input[type="text"][name="text"][value="text-value"]'
+		form.affix 'input[type="text"][name="text-disabled"][value="disabled-value"][disabled=disabled]'
 		form.affix 'input[type="hidden"][name="hidden"][value="hidden-value"]'
 		form.affix 'input[type="password"][name="password"][value="password-value"]'
 		form.affix 'input[type="file"][name="file"]' # this MAY cause a problem in some browsers - DOM Exception 11
@@ -43,6 +44,9 @@ describe 'FormSerializer', ->
 			formElement = document.getElementById 'serializable-form'
 			form = new Form(formElement)
 			serializedString = FormSerializer.toString form
+
+		it "will ignore disabled elements", ->
+			expect(serializedString).not.toContain 'text-disabled'
 
 		describe "when serializing INPUT elements", ->
 
