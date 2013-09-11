@@ -5,6 +5,7 @@ class Serializer
 	# private
 
 	serializeElement = (element)->
+		return "" if element.disabled
 		return "#{element.name}=#{encodeURIComponent element.value}" unless isComplicated element
 		return "#{element.name}=#{encodeURIComponent element.value}" if isCheckable(element) and element.checked
 		return ("#{element.name}=#{encodeURIComponent option.value}" for option in element.options when option.selected).join("&") if isMultiSelect(element)

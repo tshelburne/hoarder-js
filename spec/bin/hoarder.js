@@ -173,6 +173,9 @@
     serializeElement = function(element) {
       var option;
 
+      if (element.disabled) {
+        return "";
+      }
       if (!isComplicated(element)) {
         return "" + element.name + "=" + (encodeURIComponent(element.value));
       }
