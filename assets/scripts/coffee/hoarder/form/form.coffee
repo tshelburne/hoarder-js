@@ -14,6 +14,8 @@ class Form
 
 	isValid: -> @formElement.checkValidity()
 
+	submitButton: -> (element for element in @formElement.elements when element.type is 'submit')[0]
+
 	addElement: (name, value, isPermanent=false)->
 		throw new Error "'#{name}' already exists as an element on the form." if @hasElement name
 		element = createElement name, value

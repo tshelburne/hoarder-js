@@ -31,7 +31,7 @@ createAddressFormFixture = ->
   formFixture.affix 'input#zip[type="text"][name="zip"][value="78751"]'
   document.getElementById('zip').pattern = "[0-9]{5}"
 
-  formFixture.affix 'button#submit[type="submit"]'
+  formFixture.affix 'button#submit'
 
 globalize(createCreditCardFormFixture, 'createCreditCardFormFixture')
 globalize(createAddressFormFixture, 'createAddressFormFixture')

@@ -55,6 +55,11 @@ describe "Form", ->
 			addressElement.setCustomValidity "Invalid element"
 			expect(form.isValid()).toBeFalsy()
 
+	describe '#submitButton', ->
+
+		it "will return the form's submit button", ->
+			expect(form.submitButton()).toEqual document.getElementById 'submit'
+
 	describe '#addElement', ->
 
 		it "will add an element to the list of elements", ->
