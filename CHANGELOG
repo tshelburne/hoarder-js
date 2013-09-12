@@ -1,3 +1,5 @@
+v0.0.9 update form and form manager to disable the submit button during the process of submitting the form
+
 v0.0.8 updated form serializer to ignore disabled elements in serializations, according to DOM spec
 
 v0.0.7 added permanent elements to forms, which aren't removable by clearAddedElements
