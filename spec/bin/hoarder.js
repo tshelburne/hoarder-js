@@ -41,6 +41,24 @@
       return this.formElement.checkValidity();
     };
 
+    Form.prototype.submitButton = function() {
+      var element;
+
+      return ((function() {
+        var _i, _len, _ref, _results;
+
+        _ref = this.formElement.elements;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          element = _ref[_i];
+          if (element.type === 'submit') {
+            _results.push(element);
+          }
+        }
+        return _results;
+      }).call(this))[0];
+    };
+
     Form.prototype.addElement = function(name, value, isPermanent) {
       var element;
 
@@ -264,7 +282,7 @@
   FormValidator = require('hoarder/validator/form_validator');
 
   FormManager = (function() {
-    var buildHoarderForm, getForm, submit, validate;
+    var buildHoarderForm, getForm, reEnableSubmit, submit, validate;
 
     FormManager.create = function(pollingUrl, pollFrequency) {
       if (pollingUrl == null) {
@@ -282,6 +300,8 @@
       this.validatedWithErrors = new Signal();
       this.submittedWithSuccess = new SignalRelay(this.submitter.submittedWithSuccess);
       this.submittedWithError = new SignalRelay(this.submitter.submittedWithError);
+      this.submitter.submittedWithSuccess.add(reEnableSubmit);
+      this.submitter.submittedWithError.add(reEnableSubmit);
       this._forms = [];
       this._listeners = {};
     }
@@ -347,11 +367,16 @@
       });
       formElement.addEventListener('submit', this._listeners[formId]['submit'] = function(event) {
         event.preventDefault();
+        form.submitButton().disabled = true;
         if (form.isValid()) {
           return submit.call(_this, form, type);
         }
       });
       return form;
+    };
+
+    reEnableSubmit = function(form) {
+      return form.submitButton().disabled = false;
     };
 
     return FormManager;

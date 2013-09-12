@@ -17,6 +17,8 @@ class FormManager
 		@validatedWithErrors = new Signal()
 		@submittedWithSuccess = new SignalRelay(@submitter.submittedWithSuccess)
 		@submittedWithError = new SignalRelay(@submitter.submittedWithError)
+		@submitter.submittedWithSuccess.add reEnableSubmit
+		@submitter.submittedWithError.add reEnableSubmit
 		@_forms = []
 		@_listeners = {}
 
@@ -52,7 +54,10 @@ class FormManager
 			validate.call @, form if event.target.type is 'submit'
 		formElement.addEventListener 'submit', @_listeners[formId]['submit'] = (event)=>
 			event.preventDefault()
+			form.submitButton().disabled = true
 			submit.call @, form, type if form.isValid()
 		form
+
+	reEnableSubmit = (form)-> form.submitButton().disabled = false
 
 return FormManager

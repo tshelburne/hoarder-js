@@ -5,6 +5,7 @@ Form = require 'hoarder/form/form'
 
 describe "FormManager", ->
 	manager = submitter = validator = null
+	submitButton = null
 
 	reqwestCallback = null
 	reqwestResponse = null
@@ -21,6 +22,8 @@ describe "FormManager", ->
 
 	beforeEach ->
 		createCreditCardFormFixture()
+
+		submitButton = document.getElementById 'submit'
 
 		submitter = FormSubmitter.create('/polling-url', 500)
 		validator = FormValidator.create()
@@ -59,7 +62,7 @@ describe "FormManager", ->
 				beforeEach ->
 					spyOn(submitter, 'submit')
 					document.getElementById('card-number').value = '12345'
-					document.getElementById('submit').click()
+					submitButton.click()
 
 				it "will call callbacks added to the validatedWithErrors signal", ->
 					expect(callbacks.validateErrorHappened).toHaveBeenCalledWith(form)
@@ -72,27 +75,38 @@ describe "FormManager", ->
 				it "will attempt to submit the form", ->
 					spyOn(submitter, 'submit')
 					reqwestResponse = mocks.simpleSuccessResponse
-					document.getElementById('submit').click()
+					submitButton.click()
 					expect(submitter.submit).toHaveBeenCalledWith(form, 'simple')
+
+				it "will disable the submit button", ->
+					spyOn(submitter, 'submit')
+					submitButton.click()
+					expect(submitButton.disabled).toBeTruthy()
 
 				describe "and submission is successful", ->
 
 					beforeEach ->
 						reqwestResponse = mocks.simpleSuccessResponse
-						document.getElementById('submit').click()
+						submitButton.click()
 
 					it "will call callbacks added to the submittedWithSuccess", ->
 						expect(callbacks.submitSuccessHappened).toHaveBeenCalledWith(form, successResponse())
+
+					it "will re-enable the submit button", ->
+						expect(submitButton.disabled).toBeFalsy()
 
 				describe "and submission is not successful", ->
 
 					beforeEach ->
 						reqwestCallback = 'error'
 						reqwestResponse = mocks.errorResponse
-						document.getElementById('submit').click()
+						submitButton.click()
 
 					it "will call callbacks added to the submittedWithError", ->
 						expect(callbacks.submitErrorHappened).toHaveBeenCalledWith(form, errorResponse())
+
+					it "will re-enable the submit button", ->
+						expect(submitButton.disabled).toBeFalsy()
 
 	describe '#release', ->
 		formElement = null
@@ -109,16 +123,16 @@ describe "FormManager", ->
 
 		it "will no longer call the validation callbacks", ->
 			document.getElementById('card-number').value = '12345'
-			document.getElementById('submit').click()
+			submitButton.click()
 			expect(callbacks.validateErrorHappened).not.toHaveBeenCalled()
 
 		it "will no longer call the success callbacks", ->
 			reqwestResponse = mocks.simpleSuccessResponse
-			document.getElementById('submit').click()
+			submitButton.click()
 			expect(callbacks.submitSuccessHappened).not.toHaveBeenCalled()
 
 		it "will no longer call the error callbacks", ->
 			reqwestCallback = 'error'
 			reqwestResponse = mocks.errorResponse
-			document.getElementById('submit').click()
+			submitButton.click()
 			expect(callbacks.submitErrorHappened).not.toHaveBeenCalled()
