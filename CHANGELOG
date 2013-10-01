@@ -1,3 +1,5 @@
+v0.0.10 update submitters to return error xhr data properly from signal relays
+
 v0.0.9 update form and form manager to disable the submit button during the process of submitting the form
 
 v0.0.8 updated form serializer to ignore disabled elements in serializations, according to DOM spec

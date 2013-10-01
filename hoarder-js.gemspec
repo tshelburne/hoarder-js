@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = "hoarder-js"
-  s.version = "0.0.9"
+  s.version = "0.0.10"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tim Shelburne"]
-  s.date = "2013-09-12"
+  s.date = "2013-10-01"
   s.description = ""
   s.email = "shelburt02@gmail.com"
   s.executables = ["hoarder.min.js", "hoarder.min.js.gz"]
