@@ -15,7 +15,7 @@ class SimpleSubmitter extends BaseSubmitter
       method: form.method()
       data: form.serialize()
       success: (data)=> @submittedWithSuccess.dispatch(form, data)
-      error: (xhr, text)=> @submittedWithError.dispatch(form, text)
+      error: (xhr)=> @submittedWithError.dispatch(form, xhr)
     )
 
 return SimpleSubmitter

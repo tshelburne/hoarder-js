@@ -3,43 +3,36 @@ Form = require 'hoarder/form/form'
 
 describe "SimpleSubmitter", ->
 	submitter = form = null
-
-	reqwestCallback = "success"
-	reqwestResponse = null
-	reqwestSpy = (params)-> params[reqwestCallback].apply null, reqwestResponse
-
-	# these are a result of using Function::apply above
-	successResponse = -> reqwestResponse[0]
-	errorResponse = -> reqwestResponse[1]
+	reqwestSpy = null
 
 	callbacks =
 		successHappened: (form, data)->
-		errorHappened: (form, errorMessage)->
+		errorHappened: (form, xhr)->
 
 	beforeEach ->
 		createAddressFormFixture()
 
 		form = new Form(document.getElementById('test-form'))
 		submitter = new SimpleSubmitter()
+
 		spyOn(callbacks, 'successHappened').andCallThrough()
 		spyOn(callbacks, 'errorHappened').andCallThrough()
 		submitter.submittedWithSuccess.add callbacks.successHappened
 		submitter.submittedWithError.add callbacks.errorHappened
-		spyOn(window, 'reqwest').andCallFake(reqwestSpy)
+		reqwestSpy = spyOn(window, 'reqwest')
 
 	describe '#submit', ->
 
 		describe "when the submission is successful", ->
 
 			it "will call callbacks added to the submittedWithSuccess signal", ->
-				reqwestResponse = mocks.simpleSuccessResponse
+				reqwestSpy.andCallFake (params)-> params.success mocks.simpleSuccessResponse
 				submitter.submit(form)
-				expect(callbacks.successHappened).toHaveBeenCalledWith(form, successResponse())
+				expect(callbacks.successHappened).toHaveBeenCalledWith(form, mocks.simpleSuccessResponse)
 			
 		describe "when an error occurs in the submission", ->
 
 			it "will call callbacks added to the submittedWithError signal", ->
-				reqwestCallback = 'error'
-				reqwestResponse = mocks.errorResponse
+				reqwestSpy.andCallFake (params)-> params.error mocks.errorXhr
 				submitter.submit(form)
-				expect(callbacks.errorHappened).toHaveBeenCalledWith(form, errorResponse())
+				expect(callbacks.errorHappened).toHaveBeenCalledWith(form, mocks.errorXhr)
