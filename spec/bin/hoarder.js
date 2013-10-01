@@ -558,8 +558,8 @@
         success: function(data) {
           return _this.poll(form, data.processId);
         },
-        error: function(xhr, text) {
-          return _this.submittedWithError.dispatch(form, text);
+        error: function(xhr) {
+          return _this.submittedWithError.dispatch(form, xhr);
         }
       });
     };
@@ -575,8 +575,8 @@
         success: function(data) {
           return pollSuccess.call(_this, form, processId, data);
         },
-        error: function(xhr, text) {
-          return _this.submittedWithError.dispatch(form, text);
+        error: function(xhr) {
+          return _this.submittedWithError.dispatch(form, xhr);
         }
       });
     };
@@ -643,8 +643,8 @@
         success: function(data) {
           return _this.submittedWithSuccess.dispatch(form, data);
         },
-        error: function(xhr, text) {
-          return _this.submittedWithError.dispatch(form, text);
+        error: function(xhr) {
+          return _this.submittedWithError.dispatch(form, xhr);
         }
       });
     };
