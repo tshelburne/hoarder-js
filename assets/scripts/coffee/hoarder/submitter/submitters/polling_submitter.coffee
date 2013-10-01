@@ -15,7 +15,7 @@ class PollingSubmitter extends BaseSubmitter
       method: form.method()
       data: form.serialize()
       success: (data)=> @poll(form, data.processId)
-      error: (xhr, text)=> @submittedWithError.dispatch(form, text)
+      error: (xhr)=> @submittedWithError.dispatch(form, xhr)
     )
 
   poll: (form, processId)=>  
@@ -25,7 +25,7 @@ class PollingSubmitter extends BaseSubmitter
       method: "POST"
       data: "processId=#{processId}"
       success: (data)=> pollSuccess.call @, form, processId, data
-      error: (xhr, text)=> @submittedWithError.dispatch(form, text)
+      error: (xhr)=> @submittedWithError.dispatch(form, xhr)
     )
 
   # private
