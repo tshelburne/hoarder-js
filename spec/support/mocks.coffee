@@ -1,17 +1,19 @@
-# we have to use arrays so that success / error functions can be called with Function::apply
+addMock "simpleSuccessResponse", 
+	status: "success", 
+	testData: "This is just some simple test data."
 
-addMock "simpleSuccessResponse", [ status: "success", testData: "This is just some simple test data." ]
-
-addMock "pollingSubmitSuccessResponse", [ processId: "1234" ]
+addMock "pollingSubmitSuccessResponse", 
+	processId: "1234"
 
 addMock "pollingProcessCompletedResponse", 
-	[
-		processCompleted: true
-		processData:
-			status: "success"
-			testData: "This is just some polling test data"
-	]
+	processCompleted: true
+	processData:
+		status: "success"
+		testData: "This is just some polling test data"
 
-addMock "pollingProcessNotCompletedResponse", [ processCompleted: false ]
+addMock "pollingProcessNotCompletedResponse", 
+	processCompleted: false
 
-addMock "errorResponse", [ null, "Error!" ]
+addMock "errorXhr", 
+	status: "Bad Request", 
+	response: "Error!"

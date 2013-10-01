@@ -3,18 +3,11 @@ Form = require 'hoarder/form/form'
 
 describe "PollingSubmitter", ->
 	submitter = form = null
-
-	reqwestCallback = null
-	reqwestResponse = null
-	reqwestSpy = (params)-> params[reqwestCallback].apply null, reqwestResponse
-
-	# these are a result of using Function::apply above
-	successResponse = -> reqwestResponse[0]
-	errorResponse = -> reqwestResponse[1]
+	reqwestSpy = null
 
 	callbacks =
 		successHappened: (form, data)->
-		errorHappened: (form, errorMessage)->
+		errorHappened: (form, xhr)->
 
 	beforeEach ->
 		createAddressFormFixture()
@@ -22,12 +15,11 @@ describe "PollingSubmitter", ->
 		form = new Form(document.getElementById('test-form'))
 		submitter = new PollingSubmitter("/poll-url", 500)
 		
-		reqwestCallback = "success"
 		spyOn(callbacks, 'successHappened').andCallThrough()
 		spyOn(callbacks, 'errorHappened').andCallThrough()
 		submitter.submittedWithSuccess.add callbacks.successHappened
 		submitter.submittedWithError.add callbacks.errorHappened
-		spyOn(window, 'reqwest').andCallFake(reqwestSpy)
+		reqwestSpy = spyOn(window, 'reqwest')
 
 	describe '#submit', ->
 
@@ -35,23 +27,22 @@ describe "PollingSubmitter", ->
 
 			it "will initiate a poll", ->
 				spyOn(submitter, 'poll')
-				reqwestResponse = mocks.pollingSubmitSuccessResponse
+				reqwestSpy.andCallFake (params)-> params.success mocks.pollingSubmitSuccessResponse
 				submitter.submit(form)
-				expect(submitter.poll).toHaveBeenCalledWith(form, successResponse().processId)
+				expect(submitter.poll).toHaveBeenCalledWith(form, mocks.pollingSubmitSuccessResponse.processId)
 			
 		describe "when an error occurs in the submission", ->
 
 			it "will call callbacks added to the submittedWithError signal", ->
-				reqwestCallback = "error"
-				reqwestResponse = mocks.errorResponse
+				reqwestSpy.andCallFake (params)-> params.error mocks.errorXhr
 				submitter.submit(form)
-				expect(callbacks.errorHappened).toHaveBeenCalledWith(form, errorResponse())
+				expect(callbacks.errorHappened).toHaveBeenCalledWith(form, mocks.errorXhr)
 
 	describe '#poll', ->
 
 		beforeEach ->
 			spyOn(submitter, "poll").andCallThrough()
-			reqwestResponse = mocks.pollingProcessNotCompletedResponse
+			reqwestSpy.andCallFake (params)-> params.success mocks.pollingProcessNotCompletedResponse
 			jasmine.Clock.useMock()
 			submitter.poll(form, "1234")
 
@@ -67,7 +58,7 @@ describe "PollingSubmitter", ->
 			describe "and the process has completed", ->
 
 				beforeEach ->
-					reqwestResponse = mocks.pollingProcessCompletedResponse
+					reqwestSpy.andCallFake (params)-> params.success mocks.pollingProcessCompletedResponse
 					jasmine.Clock.tick 501
 
 				it "will stop polling", ->
@@ -76,7 +67,7 @@ describe "PollingSubmitter", ->
 					expect(submitter.poll.calls.length).toEqual 2
 
 				it "will call callbacks added to the submittedWithSuccess signal", ->
-					expect(callbacks.successHappened).toHaveBeenCalledWith(form, successResponse().processData)
+					expect(callbacks.successHappened).toHaveBeenCalledWith(form, mocks.pollingProcessCompletedResponse.processData)
 
 			describe "and the process has not yet completed", ->
 
@@ -95,7 +86,6 @@ describe "PollingSubmitter", ->
 		describe "when an error occurs in the polling", ->
 
 			it "will call callbacks added to the submittedWithError signal", ->
-				reqwestCallback = "error"
-				reqwestResponse = mocks.errorResponse
+				reqwestSpy.andCallFake (params)-> params.error mocks.errorXhr
 				submitter.poll(form, "1234")
-				expect(callbacks.errorHappened).toHaveBeenCalledWith(form, errorResponse())
+				expect(callbacks.errorHappened).toHaveBeenCalledWith(form, mocks.errorXhr)

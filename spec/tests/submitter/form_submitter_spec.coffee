@@ -6,14 +6,7 @@ PollingSubmitter = require "hoarder/submitter/submitters/polling_submitter"
 
 describe "FormSubmitter", ->
   formSubmitter = pollingSubmitter = form = null
-
-  reqwestCallback = null
-  reqwestResponse = null
-  reqwestSpy = (params)-> params[reqwestCallback].apply null, reqwestResponse
-
-  # these are a result of using Function::apply above
-  successResponse = -> reqwestResponse[0]
-  errorResponse = -> reqwestResponse[1]
+  reqwestSpy = null
 
   callbacks =
     successHappened: (form, data)->
@@ -26,12 +19,11 @@ describe "FormSubmitter", ->
     pollingSubmitter = new PollingSubmitter("/poll-url", 500)
     formSubmitter = new FormSubmitter([ new SimpleSubmitter(), pollingSubmitter ])
     
-    reqwestCallback = "success"
     spyOn(callbacks, 'successHappened').andCallThrough()
     spyOn(callbacks, 'errorHappened').andCallThrough()
     formSubmitter.submittedWithSuccess.add callbacks.successHappened
     formSubmitter.submittedWithError.add callbacks.errorHappened
-    spyOn(window, 'reqwest').andCallFake(reqwestSpy)
+    reqwestSpy = spyOn(window, 'reqwest')
 
   describe '::create', ->
 
@@ -41,24 +33,22 @@ describe "FormSubmitter", ->
   describe '#submit', ->
 
     it "will successfully submit a simple form", ->
-      reqwestResponse = mocks.simpleSuccessResponse
+      reqwestSpy.andCallFake (params)-> params.success mocks.simpleSuccessResponse
       formSubmitter.submit form, 'simple'
-      expect(callbacks.successHappened).toHaveBeenCalledWith form, successResponse()
+      expect(callbacks.successHappened).toHaveBeenCalledWith form, mocks.simpleSuccessResponse
 
     it "will relay errors on a simple form submission", ->
-      reqwestCallback = 'error'
-      reqwestResponse = mocks.errorResponse
+      reqwestSpy.andCallFake (params)-> params.error mocks.errorXhr
       formSubmitter.submit form, 'simple'
-      expect(callbacks.errorHappened).toHaveBeenCalledWith form, errorResponse()
+      expect(callbacks.errorHappened).toHaveBeenCalledWith form, mocks.errorXhr
 
     it "will successfully submit a polling form", ->
-      reqwestResponse = mocks.pollingProcessCompletedResponse
+      reqwestSpy.andCallFake (params)-> params.success mocks.pollingProcessCompletedResponse
       spyOn(pollingSubmitter, 'submit').andCallFake(-> pollingSubmitter.poll(form, "1234"))
       formSubmitter.submit form, 'polling'
-      expect(callbacks.successHappened).toHaveBeenCalledWith form, successResponse().processData
+      expect(callbacks.successHappened).toHaveBeenCalledWith form, mocks.pollingProcessCompletedResponse.processData
 
     it "will relay errors on a polling form submission", ->
-      reqwestCallback = 'error'
-      reqwestResponse = mocks.errorResponse
+      reqwestSpy.andCallFake (params)-> params.error mocks.errorXhr
       formSubmitter.submit form, 'polling'
-      expect(callbacks.errorHappened).toHaveBeenCalledWith form, errorResponse()
+      expect(callbacks.errorHappened).toHaveBeenCalledWith form, mocks.errorXhr

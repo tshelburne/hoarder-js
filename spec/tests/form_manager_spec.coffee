@@ -6,14 +6,7 @@ Form = require 'hoarder/form/form'
 describe "FormManager", ->
 	manager = submitter = validator = null
 	submitButton = null
-
-	reqwestCallback = null
-	reqwestResponse = null
-	reqwestSpy = (params)-> params[reqwestCallback].apply null, reqwestResponse
-
-	# these are a result of using Function::apply above
-	successResponse = -> reqwestResponse[0]
-	errorResponse = -> reqwestResponse[1]
+	reqwestSpy = null
 
 	callbacks =
 		validateErrorHappened: (form)->
@@ -29,14 +22,13 @@ describe "FormManager", ->
 		validator = FormValidator.create()
 		manager = new FormManager(submitter, validator)
 
-		reqwestCallback = "success"
 		spyOn(callbacks, 'validateErrorHappened').andCallThrough()
 		spyOn(callbacks, 'submitSuccessHappened').andCallThrough()
 		spyOn(callbacks, 'submitErrorHappened').andCallThrough()
 		manager.validatedWithErrors.add callbacks.validateErrorHappened
 		manager.submittedWithSuccess.add callbacks.submitSuccessHappened
 		manager.submittedWithError.add callbacks.submitErrorHappened
-		spyOn(window, 'reqwest').andCallFake(reqwestSpy)
+		reqwestSpy = spyOn(window, 'reqwest')
 
 	describe '::create', ->
 
@@ -74,7 +66,7 @@ describe "FormManager", ->
 
 				it "will attempt to submit the form", ->
 					spyOn(submitter, 'submit')
-					reqwestResponse = mocks.simpleSuccessResponse
+					reqwestSpy.andCallFake((params)-> params.success(mocks.simpleSuccessResponse))
 					submitButton.click()
 					expect(submitter.submit).toHaveBeenCalledWith(form, 'simple')
 
@@ -86,11 +78,11 @@ describe "FormManager", ->
 				describe "and submission is successful", ->
 
 					beforeEach ->
-						reqwestResponse = mocks.simpleSuccessResponse
+						reqwestSpy.andCallFake((params)-> params.success(mocks.simpleSuccessResponse))
 						submitButton.click()
 
 					it "will call callbacks added to the submittedWithSuccess", ->
-						expect(callbacks.submitSuccessHappened).toHaveBeenCalledWith(form, successResponse())
+						expect(callbacks.submitSuccessHappened).toHaveBeenCalledWith(form, mocks.simpleSuccessResponse)
 
 					it "will re-enable the submit button", ->
 						expect(submitButton.disabled).toBeFalsy()
@@ -98,12 +90,11 @@ describe "FormManager", ->
 				describe "and submission is not successful", ->
 
 					beforeEach ->
-						reqwestCallback = 'error'
-						reqwestResponse = mocks.errorResponse
+						reqwestSpy.andCallFake((params)-> params.error(mocks.errorXhr))
 						submitButton.click()
 
 					it "will call callbacks added to the submittedWithError", ->
-						expect(callbacks.submitErrorHappened).toHaveBeenCalledWith(form, errorResponse())
+						expect(callbacks.submitErrorHappened).toHaveBeenCalledWith(form, mocks.errorXhr)
 
 					it "will re-enable the submit button", ->
 						expect(submitButton.disabled).toBeFalsy()
@@ -127,12 +118,11 @@ describe "FormManager", ->
 			expect(callbacks.validateErrorHappened).not.toHaveBeenCalled()
 
 		it "will no longer call the success callbacks", ->
-			reqwestResponse = mocks.simpleSuccessResponse
+			reqwestSpy.andCallFake((params)-> params.success(mocks.simpleSuccessResponse))
 			submitButton.click()
 			expect(callbacks.submitSuccessHappened).not.toHaveBeenCalled()
 
 		it "will no longer call the error callbacks", ->
-			reqwestCallback = 'error'
-			reqwestResponse = mocks.errorResponse
+			reqwestSpy.andCallFake((params)-> params.error(mocks.errorXhr))
 			submitButton.click()
 			expect(callbacks.submitErrorHappened).not.toHaveBeenCalled()
