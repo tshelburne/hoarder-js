@@ -4,7 +4,8 @@
   var formCache = null;
   var formFunc = function() {
     return (function() {
-  var Form, FormSerializer;
+  var Form, FormSerializer,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   FormSerializer = require('hoarder/form/form_serializer');
 
@@ -13,6 +14,10 @@
 
     function Form(formElement) {
       this.formElement = formElement;
+      this.clearAddedElements = __bind(this.clearAddedElements, this);
+      this.updateAddedElement = __bind(this.updateAddedElement, this);
+      this.addElements = __bind(this.addElements, this);
+      this.addElement = __bind(this.addElement, this);
       this.addedElements = [];
       this.permanentElements = [];
     }
