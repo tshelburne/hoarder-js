@@ -16,14 +16,14 @@ class Form
 
 	submitButton: -> (element for element in @formElement.elements when element.type is 'submit')[0]
 
-	addElement: (name, value, isPermanent=false)->
+	addElement: (name, value, isPermanent=false)=>
 		throw new Error "'#{name}' already exists as an element on the form." if @hasElement name
 		element = createElement name, value
 		@formElement.appendChild element
 		if isPermanent then @permanentElements.push element else @addedElements.push element
 		element
 
-	addElements: (elements, arePermanent=false)->
+	addElements: (elements, arePermanent=false)=>
 		errors = [ ]
 		for element in elements
 			try @addElement(element.name, element.value, arePermanent) 
@@ -35,9 +35,9 @@ class Form
 
 	getElement: (name)-> @formElement[name] if @formElement[name] instanceof HTMLElement
 
-	updateAddedElement: (name, value)-> if @formElement[name]? then @formElement[name].value = value else @addElement name, value
+	updateAddedElement: (name, value)=> if @formElement[name]? then @formElement[name].value = value else @addElement name, value
 
-	clearAddedElements: ->
+	clearAddedElements: =>
 		@formElement.removeChild element for element in @addedElements
 		@addedElements = []
 
