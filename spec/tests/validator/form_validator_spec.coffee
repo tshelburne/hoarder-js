@@ -12,7 +12,23 @@ describe "FormValidator", ->
     cardNumberElement  = formElement['card-number']
 
     form      = new Form(formElement)
-    validator = FormValidator.create()
+    validator = new FormValidator(FormValidator.libraryConstraints)
+
+  describe '::create', ->
+    customConstraint = null
+
+    beforeEach ->
+      customConstraint = new CustomConstraint()
+      validator = FormValidator.create([ customConstraint ])
+
+    it "will return a FormValidator", ->
+      expect(validator.constructor).toEqual FormValidator
+
+    it "will have all the default constraints from Hoarder included", ->
+      expect(validator.constraints).toContain constraint for constraint in FormValidator.libraryConstraints
+
+    it "will add any custom constraints passed in", ->
+      expect(validator.constraints).toContain customConstraint
 
   describe '#validateForm', ->
 

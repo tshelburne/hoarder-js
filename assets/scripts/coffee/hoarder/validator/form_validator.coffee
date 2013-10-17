@@ -6,7 +6,9 @@ class FormValidator
       new CreditCardConstraint()
     ]
     
-  @create: -> new @(FormValidator.libraryConstraints)
+  @create: (constraints=[])-> 
+    constraints.push constraint for constraint in FormValidator.libraryConstraints
+    new @(constraints)
 
   constructor: (@constraints)->
 
