@@ -1,3 +1,5 @@
+v0.0.12 updated the FormManager::create signature to take a list of custom callbacks to be pushed to the FormValidator
+
 v0.0.11 update form methods that are action-like to be usable as callbacks
 
 v0.0.10 update submitters to return error xhr data properly from signal relays
