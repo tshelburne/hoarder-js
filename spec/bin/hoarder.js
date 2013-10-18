@@ -289,14 +289,17 @@
   FormManager = (function() {
     var buildHoarderForm, getForm, reEnableSubmit, submit, validate;
 
-    FormManager.create = function(pollingUrl, pollFrequency) {
+    FormManager.create = function(pollingUrl, pollFrequency, customConstraints) {
       if (pollingUrl == null) {
         pollingUrl = "";
       }
       if (pollFrequency == null) {
         pollFrequency = 1000;
       }
-      return new this(FormSubmitter.create(pollingUrl, pollFrequency), FormValidator.create());
+      if (customConstraints == null) {
+        customConstraints = [];
+      }
+      return new this(FormSubmitter.create(pollingUrl, pollFrequency), FormValidator.create(customConstraints));
     };
 
     function FormManager(submitter, validator) {
@@ -770,8 +773,18 @@
 
     FormValidator.libraryConstraints = [new CreditCardConstraint()];
 
-    FormValidator.create = function() {
-      return new this(FormValidator.libraryConstraints);
+    FormValidator.create = function(constraints) {
+      var constraint, _i, _len, _ref;
+
+      if (constraints == null) {
+        constraints = [];
+      }
+      _ref = FormValidator.libraryConstraints;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        constraint = _ref[_i];
+        constraints.push(constraint);
+      }
+      return new this(constraints);
     };
 
     function FormValidator(constraints) {
