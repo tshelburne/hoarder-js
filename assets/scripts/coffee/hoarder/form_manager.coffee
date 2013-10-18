@@ -10,8 +10,8 @@ FormValidator = require 'hoarder/validator/form_validator'
 
 class FormManager
 
-	@create: (pollingUrl="", pollFrequency=1000)->
-		new @(FormSubmitter.create(pollingUrl, pollFrequency), FormValidator.create())
+	@create: (pollingUrl="", pollFrequency=1000, customConstraints=[])->
+		new @(FormSubmitter.create(pollingUrl, pollFrequency), FormValidator.create(customConstraints))
 
 	constructor: (@submitter, @validator)->
 		@validatedWithErrors = new Signal()
