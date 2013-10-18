@@ -17,21 +17,21 @@ class FormValidator
     form.isValid()
 
   validateElement: (element)->
-    clearCustomErrorOn element
+    _clearCustomErrorOn element
     
     type = element.getAttribute("type")
     for constraint in @constraints
       constraint.handle(element, type) if constraint.canHandle type
-      break unless isValid element
+      break unless _isValid element
 
-    isValid element
+    _isValid element
 
   # private
 
-  clearCustomErrorOn = (element)-> markValidityAs element, ""
+  _clearCustomErrorOn = (element)-> _markValidityAs element, ""
 
-  markValidityAs = (element, message)-> element.setCustomValidity message
+  _markValidityAs = (element, message)-> element.setCustomValidity message
 
-  isValid = (element)-> element.validity.valid
+  _isValid = (element)-> element.validity.valid
 
 return FormValidator

@@ -24,13 +24,13 @@ class PollingSubmitter extends BaseSubmitter
       type: 'json'
       method: "POST"
       data: "processId=#{processId}"
-      success: (data)=> pollSuccess.call @, form, processId, data
+      success: (data)=> _pollSuccess.call @, form, processId, data
       error: (xhr)=> @submittedWithError.dispatch(form, xhr)
     )
 
   # private
 
-  pollSuccess = (form, processId, data)->
+  _pollSuccess = (form, processId, data)->
     if data.processCompleted
       @submittedWithSuccess.dispatch(form, data.processData)
     else

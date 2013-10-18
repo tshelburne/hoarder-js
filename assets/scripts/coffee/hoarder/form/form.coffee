@@ -18,7 +18,7 @@ class Form
 
 	addElement: (name, value, isPermanent=false)=>
 		throw new Error "'#{name}' already exists as an element on the form." if @hasElement name
-		element = createElement name, value
+		element = _createElement name, value
 		@formElement.appendChild element
 		if isPermanent then @permanentElements.push element else @addedElements.push element
 		element
@@ -46,7 +46,7 @@ class Form
 
 	# private
 
-	createElement = (name, value)->
+	_createElement = (name, value)->
 		element = document.createElement("input")
 		element.type = "hidden"
 		element.name = name
