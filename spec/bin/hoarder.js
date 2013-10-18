@@ -10,7 +10,7 @@
   FormSerializer = require('hoarder/form/form_serializer');
 
   Form = (function() {
-    var createElement;
+    var _createElement;
 
     function Form(formElement) {
       this.formElement = formElement;
@@ -73,7 +73,7 @@
       if (this.hasElement(name)) {
         throw new Error("'" + name + "' already exists as an element on the form.");
       }
-      element = createElement(name, value);
+      element = _createElement(name, value);
       this.formElement.appendChild(element);
       if (isPermanent) {
         this.permanentElements.push(element);
@@ -137,7 +137,7 @@
       return FormSerializer.toString(this);
     };
 
-    createElement = function(name, value) {
+    _createElement = function(name, value) {
       var element;
 
       element = document.createElement("input");
@@ -173,39 +173,39 @@
   var Serializer;
 
   Serializer = (function() {
-    var isCheckable, isComplicated, isFile, isMultiSelect, removeNulls, serializeElement;
+    var _isCheckable, _isComplicated, _isFile, _isMultiSelect, _removeNulls, _serializeElement;
 
     function Serializer() {}
 
     Serializer.toString = function(form) {
       var element;
 
-      return removeNulls((function() {
+      return _removeNulls((function() {
         var _i, _len, _ref, _results;
 
         _ref = form.elements();
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           element = _ref[_i];
-          _results.push(serializeElement(element));
+          _results.push(_serializeElement(element));
         }
         return _results;
       })()).join("&");
     };
 
-    serializeElement = function(element) {
+    _serializeElement = function(element) {
       var option;
 
       if (element.disabled) {
         return "";
       }
-      if (!isComplicated(element)) {
+      if (!_isComplicated(element)) {
         return "" + element.name + "=" + (encodeURIComponent(element.value));
       }
-      if (isCheckable(element) && element.checked) {
+      if (_isCheckable(element) && element.checked) {
         return "" + element.name + "=" + (encodeURIComponent(element.value));
       }
-      if (isMultiSelect(element)) {
+      if (_isMultiSelect(element)) {
         return ((function() {
           var _i, _len, _ref, _results;
 
@@ -223,25 +223,25 @@
       return null;
     };
 
-    isComplicated = function(element) {
-      return isCheckable(element) || isMultiSelect(element) || isFile(element);
+    _isComplicated = function(element) {
+      return _isCheckable(element) || _isMultiSelect(element) || _isFile(element);
     };
 
-    isCheckable = function(element) {
+    _isCheckable = function(element) {
       var _ref;
 
       return element.nodeName === "INPUT" && ((_ref = element.type) === "checkbox" || _ref === "radio");
     };
 
-    isMultiSelect = function(element) {
+    _isMultiSelect = function(element) {
       return element.nodeName === "SELECT" && element.type === "select-multiple";
     };
 
-    isFile = function(element) {
+    _isFile = function(element) {
       return element.nodeName === "INPUT" && element.type === "file";
     };
 
-    removeNulls = function(array) {
+    _removeNulls = function(array) {
       return array.filter(function(e) {
         return e;
       });
@@ -287,16 +287,19 @@
   FormValidator = require('hoarder/validator/form_validator');
 
   FormManager = (function() {
-    var buildHoarderForm, getForm, reEnableSubmit, submit, validate;
+    var _buildHoarderForm, _getForm, _reEnableSubmit, _submit, _validate;
 
-    FormManager.create = function(pollingUrl, pollFrequency) {
+    FormManager.create = function(pollingUrl, pollFrequency, customConstraints) {
       if (pollingUrl == null) {
         pollingUrl = "";
       }
       if (pollFrequency == null) {
         pollFrequency = 1000;
       }
-      return new this(FormSubmitter.create(pollingUrl, pollFrequency), FormValidator.create());
+      if (customConstraints == null) {
+        customConstraints = [];
+      }
+      return new this(FormSubmitter.create(pollingUrl, pollFrequency), FormValidator.create(customConstraints));
     };
 
     function FormManager(submitter, validator) {
@@ -305,8 +308,8 @@
       this.validatedWithErrors = new Signal();
       this.submittedWithSuccess = new SignalRelay(this.submitter.submittedWithSuccess);
       this.submittedWithError = new SignalRelay(this.submitter.submittedWithError);
-      this.submitter.submittedWithSuccess.add(reEnableSubmit);
-      this.submitter.submittedWithError.add(reEnableSubmit);
+      this.submitter.submittedWithSuccess.add(_reEnableSubmit);
+      this.submitter.submittedWithError.add(_reEnableSubmit);
       this._forms = [];
       this._listeners = {};
     }
@@ -317,10 +320,10 @@
       if (type == null) {
         type = 'simple';
       }
-      if (getForm.call(this, formId) != null) {
+      if (_getForm.call(this, formId) != null) {
         throw new Error("'" + formId + "' is already a managed form.");
       }
-      form = buildHoarderForm.call(this, formId, type);
+      form = _buildHoarderForm.call(this, formId, type);
       this._forms.push(form);
       return form;
     };
@@ -328,14 +331,14 @@
     FormManager.prototype.release = function(formId) {
       var form;
 
-      form = getForm.call(this, formId);
+      form = _getForm.call(this, formId);
       form.formElement.removeEventListener('click', this._listeners[formId]['click']);
       form.formElement.removeEventListener('submit', this._listeners[formId]['submit']);
       delete this._listeners[formId];
       return this._forms.splice(this._forms.indexOf(form), 1);
     };
 
-    getForm = function(formId) {
+    _getForm = function(formId) {
       var form, _i, _len, _ref;
 
       _ref = this._forms;
@@ -347,17 +350,17 @@
       }
     };
 
-    validate = function(form) {
+    _validate = function(form) {
       if (!this.validator.validateForm(form)) {
         return this.validatedWithErrors.dispatch(form);
       }
     };
 
-    submit = function(form, type) {
+    _submit = function(form, type) {
       return this.submitter.submit(form, type);
     };
 
-    buildHoarderForm = function(formId, type) {
+    _buildHoarderForm = function(formId, type) {
       var form, formElement,
         _this = this;
 
@@ -367,20 +370,20 @@
       this._listeners[formId] = {};
       formElement.addEventListener('click', this._listeners[formId]['click'] = function(event) {
         if (event.target.type === 'submit') {
-          return validate.call(_this, form);
+          return _validate.call(_this, form);
         }
       });
       formElement.addEventListener('submit', this._listeners[formId]['submit'] = function(event) {
         event.preventDefault();
         form.submitButton().disabled = true;
         if (form.isValid()) {
-          return submit.call(_this, form, type);
+          return _submit.call(_this, form, type);
         }
       });
       return form;
     };
 
-    reEnableSubmit = function(form) {
+    _reEnableSubmit = function(form) {
       return form.submitButton().disabled = false;
     };
 
@@ -540,7 +543,7 @@
   BaseSubmitter = require("hoarder/submitter/submitters/base_submitter");
 
   PollingSubmitter = (function(_super) {
-    var pollSuccess;
+    var _pollSuccess;
 
     __extends(PollingSubmitter, _super);
 
@@ -578,7 +581,7 @@
         method: "POST",
         data: "processId=" + processId,
         success: function(data) {
-          return pollSuccess.call(_this, form, processId, data);
+          return _pollSuccess.call(_this, form, processId, data);
         },
         error: function(xhr) {
           return _this.submittedWithError.dispatch(form, xhr);
@@ -586,7 +589,7 @@
       });
     };
 
-    pollSuccess = function(form, processId, data) {
+    _pollSuccess = function(form, processId, data) {
       var _this = this;
 
       if (data.processCompleted) {
@@ -766,12 +769,22 @@
   CreditCardConstraint = require("hoarder/validator/constraints/credit_card_constraint");
 
   FormValidator = (function() {
-    var clearCustomErrorOn, isValid, markValidityAs;
+    var _clearCustomErrorOn, _isValid, _markValidityAs;
 
     FormValidator.libraryConstraints = [new CreditCardConstraint()];
 
-    FormValidator.create = function() {
-      return new this(FormValidator.libraryConstraints);
+    FormValidator.create = function(constraints) {
+      var constraint, _i, _len, _ref;
+
+      if (constraints == null) {
+        constraints = [];
+      }
+      _ref = FormValidator.libraryConstraints;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        constraint = _ref[_i];
+        constraints.push(constraint);
+      }
+      return new this(constraints);
     };
 
     function FormValidator(constraints) {
@@ -792,7 +805,7 @@
     FormValidator.prototype.validateElement = function(element) {
       var constraint, type, _i, _len, _ref;
 
-      clearCustomErrorOn(element);
+      _clearCustomErrorOn(element);
       type = element.getAttribute("type");
       _ref = this.constraints;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -800,22 +813,22 @@
         if (constraint.canHandle(type)) {
           constraint.handle(element, type);
         }
-        if (!isValid(element)) {
+        if (!_isValid(element)) {
           break;
         }
       }
-      return isValid(element);
+      return _isValid(element);
     };
 
-    clearCustomErrorOn = function(element) {
-      return markValidityAs(element, "");
+    _clearCustomErrorOn = function(element) {
+      return _markValidityAs(element, "");
     };
 
-    markValidityAs = function(element, message) {
+    _markValidityAs = function(element, message) {
       return element.setCustomValidity(message);
     };
 
-    isValid = function(element) {
+    _isValid = function(element) {
       return element.validity.valid;
     };
 

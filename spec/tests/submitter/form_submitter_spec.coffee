@@ -27,8 +27,21 @@ describe "FormSubmitter", ->
 
   describe '::create', ->
 
+    beforeEach ->
+      formSubmitter = FormSubmitter.create("/poll-url", 500)
+
     it "will create a default implementation of the FormSubmitter", ->
-      expect(FormSubmitter.create("/poll-url", 500).constructor).toEqual FormSubmitter
+      expect(formSubmitter.constructor).toEqual FormSubmitter
+
+    it "will add a simple submitter to the submitters list", ->
+      simpleSubmitter = submitter for submitter in formSubmitter.submitters when submitter.constructor is SimpleSubmitter
+      expect(simpleSubmitter).not.toBeNull()
+
+    it "will add a polling submitter to the submitters list", ->
+      pollingSubmitter = submitter for submitter in formSubmitter.submitters when submitter.constructor is PollingSubmitter
+      expect(pollingSubmitter).not.toBeNull()
+      expect(pollingSubmitter.pollUrl).toEqual '/poll-url'
+      expect(pollingSubmitter.pollFrequency).toEqual 500
 
   describe '#submit', ->
 

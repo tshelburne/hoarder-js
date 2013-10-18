@@ -1,24 +1,24 @@
 class Serializer
 
-	@toString: (form)-> removeNulls((serializeElement element for element in form.elements())).join("&")
+	@toString: (form)-> _removeNulls((_serializeElement element for element in form.elements())).join("&")
 
 	# private
 
-	serializeElement = (element)->
+	_serializeElement = (element)->
 		return "" if element.disabled
-		return "#{element.name}=#{encodeURIComponent element.value}" unless isComplicated element
-		return "#{element.name}=#{encodeURIComponent element.value}" if isCheckable(element) and element.checked
-		return ("#{element.name}=#{encodeURIComponent option.value}" for option in element.options when option.selected).join("&") if isMultiSelect(element)
+		return "#{element.name}=#{encodeURIComponent element.value}" unless _isComplicated element
+		return "#{element.name}=#{encodeURIComponent element.value}" if _isCheckable(element) and element.checked
+		return ("#{element.name}=#{encodeURIComponent option.value}" for option in element.options when option.selected).join("&") if _isMultiSelect(element)
 		null
 
-	isComplicated = (element)-> isCheckable(element) or isMultiSelect(element) or isFile(element)
+	_isComplicated = (element)-> _isCheckable(element) or _isMultiSelect(element) or _isFile(element)
 
-	isCheckable = (element)-> element.nodeName is "INPUT" and element.type in [ "checkbox", "radio" ]
+	_isCheckable = (element)-> element.nodeName is "INPUT" and element.type in [ "checkbox", "radio" ]
 
-	isMultiSelect = (element)-> element.nodeName is "SELECT" and element.type is "select-multiple"
+	_isMultiSelect = (element)-> element.nodeName is "SELECT" and element.type is "select-multiple"
 
-	isFile = (element)-> element.nodeName is "INPUT" and element.type is "file"
+	_isFile = (element)-> element.nodeName is "INPUT" and element.type is "file"
 
-	removeNulls = (array)-> array.filter((e)-> return e)
+	_removeNulls = (array)-> array.filter((e)-> return e)
 
 return Serializer
